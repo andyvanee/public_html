@@ -10,49 +10,22 @@
                 align-items: center;
                 height: 100vh;
                 margin: 0;
-                text-align: center;
             }
             button {
                 padding: 10px 20px;
                 font-size: 20px;
             }
-            #fscontainer {
-                background-color: beige;
-                display: grid;
-                grid-template-columns: auto auto auto;
-                gap: 1rem;
-                padding: 20px;
-                align-items: center;
-                justify-content: center;
-            }
         </style>
     </head>
     <body>
         <button id="request-fullscreen">Fullscreen</button>
-        <div id="fscontainer">
-            <div id="width">Width</div>
-            <div>x</div>
-            <div id="height">Height</div>
-        </div>
+        <iframe id="fscontainer" src="./turbowarp_test.html"></iframe>
         <script>
             const requestFullscreenButton =
                 document.getElementById("request-fullscreen");
             requestFullscreenButton.addEventListener("click", () => {
                 document.querySelector("#fscontainer").requestFullscreen();
             });
-
-            function calculateActualSize() {
-                const fscontainer = document.getElementById("fscontainer");
-                if (!fscontainer) throw new Error("fscontainer not found");
-                const { width, height } = fscontainer.getBoundingClientRect();
-                console.log({ width, height });
-                document.getElementById("width").innerText = width;
-                document.getElementById("height").innerText = height;
-            }
-
-            calculateActualSize();
-            window.addEventListener("resize", calculateActualSize);
-            document.addEventListener("fullscreenchange", calculateActualSize);
         </script>
     </body>
 </html>
