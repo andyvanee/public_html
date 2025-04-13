@@ -2,7 +2,7 @@ import { config } from '../config/gameConfig'
 
 // Board class represents the state of the game grid
 export class Board {
-    cells: (string | null)[][]
+    cells: (string | null)[][] = []
 
     constructor() {
         // Initialize empty grid

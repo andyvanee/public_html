@@ -1,0 +1,23 @@
+{
+    "name": "public_html",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "scripts": {
+        "build": "bun build --outdir=dist --minify --target=browser --no-sourcemap",
+        "start": "bun run build && bun serve dist/index.js"
+    },
+    "prettier": {
+        "singleQuote": true,
+        "semi": false,
+        "trailingComma": "all",
+        "tabWidth": 4,
+        "printWidth": 120
+    }
+}
