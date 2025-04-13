@@ -37,17 +37,20 @@ body {
     color: var(--text-color);
 }
 
-.game-container {
+.container {
     max-width: 800px;
-    width: 100%;
-    background-color: var(--container-background);
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    margin: 0 auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    border: 2px solid var(--border-color);
+    align-items: center;
+}
+
+.game-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
 }
 
 header {
@@ -81,6 +84,8 @@ main {
 .game-area {
     width: 100%;
     max-width: 400px;
+    display: flex;
+    justify-content: center;
 }
 
 .canvas-container {
@@ -89,7 +94,6 @@ main {
     max-width: 400px;
     height: auto;
     aspect-ratio: 4 / 5.5; /* Adjusted aspect ratio for the taller canvas */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 #main-canvas, #overlay-canvas {
@@ -101,8 +105,7 @@ main {
 }
 
 #main-canvas {
-    border: 2px solid var(--border-color);
-    background-color: var(--grid-background);
+    background-color: var(--background-color);
     z-index: 1;
 }
 
@@ -132,6 +135,39 @@ footer {
 
 #new-game-btn:hover {
     background-color: var(--button-hover);
+}
+
+/* Test scenarios UI */
+.test-scenarios-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+  gap: 10px;
+}
+
+.test-scenarios-container select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+#load-scenario-btn {
+  padding: 8px 12px;
+  background-color: var(--button-background);
+  color: var(--button-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+#load-scenario-btn:hover {
+  background-color: var(--button-hover);
 }
 
 @media (max-width: 600px) {

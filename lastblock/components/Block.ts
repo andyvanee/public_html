@@ -10,8 +10,7 @@ export class Block {
     isAvailable: boolean
     shapeName: string
 
-    constructor(shape?: boolean[][], position?: number) {
-        this.color = config.colors[Math.floor(Math.random() * config.colors.length)]
+    constructor(shape?: boolean[][], position?: number, color?: string) {
         this.x = 0
         this.y = 0
         this.isAvailable = true
@@ -20,11 +19,15 @@ export class Block {
         if (shape) {
             this.shape = shape
             this.shapeName = 'custom'
+            // Use provided color or default to a random color
+            this.color = color || config.colors[Math.floor(Math.random() * config.colors.length)]
         } else {
-            // Get a random shape from the Shape namespace
+            // Get a random shape from the Shape class
             const randomShape = Shape.random()
             this.shape = randomShape.pattern
             this.shapeName = randomShape.name
+            // Use the color defined in the Shape class
+            this.color = randomShape.color
         }
 
         if (position !== undefined) {

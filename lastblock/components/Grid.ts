@@ -1,12 +1,13 @@
 import { config } from '../config/gameConfig'
 import { Block } from './Block'
+import { Board } from '../models/Board'
 import { updateScoreDisplay } from '../utils/uiHelpers'
 
 // Grid class to represent the game grid
 export class Grid {
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
-    cells: (string | null)[][]
+    board: Board
     score: number
 
     constructor(canvas: HTMLCanvasElement, initialScore: number = 0) {
@@ -14,10 +15,8 @@ export class Grid {
         this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
         this.score = initialScore
 
-        // Initialize empty grid
-        this.cells = Array(config.gridSize)
-            .fill(null)
-            .map(() => Array(config.gridSize).fill(null))
+        // Initialize board
+        this.board = new Board()
 
         this.render()
     }
@@ -52,7 +51,7 @@ export class Grid {
         // Draw filled cells
         for (let y = 0; y < config.gridSize; y++) {
             for (let x = 0; x < config.gridSize; x++) {
-                const color = this.cells[y][x]
+                const color = this.board.cells[y][x]
                 if (color) {
                     ctx.fillStyle = color
                     ctx.strokeStyle = '#3F3A33' // Slightly darker than the block for outline
@@ -99,11 +98,21 @@ export class Grid {
         ctx.lineTo(this.canvas.width, gridHeight)
         ctx.stroke()
 
-        // Draw "Available Pieces" text
+        // Draw "Available Pieces" text with background to ensure visibility
+        const textY = gridHeight + 20
+        const text = 'Available Pieces'
         ctx.font = '16px Arial'
-        ctx.fillStyle = config.textColor
         ctx.textAlign = 'center'
-        ctx.fillText('Available Pieces', this.canvas.width / 2, gridHeight + 20)
+
+        // Draw text background/shadow for better visibility
+        ctx.fillStyle = 'rgba(30, 28, 25, 0.7)' // Semi-transparent background
+        const textWidth = ctx.measureText(text).width + 10
+        const textHeight = 20
+        ctx.fillRect(this.canvas.width / 2 - textWidth / 2, textY - textHeight + 4, textWidth, textHeight)
+
+        // Draw the text
+        ctx.fillStyle = config.textColor
+        ctx.fillText(text, this.canvas.width / 2, textY)
     }
 
     // Helper method to lighten a color
@@ -147,7 +156,7 @@ export class Grid {
                     }
 
                     // Check if cell is already occupied
-                    if (this.cells[targetY][targetX] !== null) {
+                    if (this.board.cells[targetY][targetX] !== null) {
                         return false
                     }
                 }
@@ -166,7 +175,7 @@ export class Grid {
         for (let y = 0; y < piece.shape.length; y++) {
             for (let x = 0; x < piece.shape[y].length; x++) {
                 if (piece.shape[y][x]) {
-                    this.cells[gridY + y][gridX + x] = piece.color
+                    this.board.cells[gridY + y][gridX + x] = piece.color
                 }
             }
         }
@@ -206,36 +215,103 @@ export class Grid {
 
     checkForCompleteLines(): number {
         let linesCleared = 0
+        // Create a set to track cells that should be cleared
+        const cellsToClear = new Set<string>()
 
-        // Check rows
+        // First pass: Mark cells to clear by checking rows
         for (let y = 0; y < config.gridSize; y++) {
-            if (this.cells[y].every((cell) => cell !== null)) {
-                // Clear row
-                this.cells[y] = Array(config.gridSize).fill(null)
-                linesCleared++
-            }
-        }
-
-        // Check columns
-        for (let x = 0; x < config.gridSize; x++) {
-            const column = this.cells.map((row) => row[x])
-            if (column.every((cell) => cell !== null)) {
-                // Clear column
-                for (let y = 0; y < config.gridSize; y++) {
-                    this.cells[y][x] = null
+            if (this.board.cells[y].every((cell) => cell !== null)) {
+                // Mark row for clearing
+                for (let x = 0; x < config.gridSize; x++) {
+                    cellsToClear.add(`${y},${x}`)
                 }
                 linesCleared++
             }
         }
 
-        // Update score
-        if (linesCleared > 0) {
-            // Score increases exponentially with more lines cleared simultaneously
-            this.score += Math.pow(linesCleared, 2) * 100
+        // First pass: Mark cells to clear by checking columns
+        for (let x = 0; x < config.gridSize; x++) {
+            const column = this.board.cells.map((row) => row[x])
+            if (column.every((cell) => cell !== null)) {
+                // Mark column for clearing
+                for (let y = 0; y < config.gridSize; y++) {
+                    cellsToClear.add(`${y},${x}`)
+                }
+                linesCleared++
+            }
+        }
+
+        // Second pass: Clear all marked cells
+        if (cellsToClear.size > 0) {
+            cellsToClear.forEach((cell) => {
+                const [y, x] = cell.split(',').map(Number)
+                this.board.cells[y][x] = null
+            })
+
+            // Apply multiplier for multi-line clears
+            const baseScore = 100
+            const multiplier = linesCleared // Each line cleared adds a 1x multiplier
+            const multiLineBonus = linesCleared > 1 ? linesCleared : 1 // Multiplier is applied only for multiple lines
+
+            // Update score - base score per line with multiplier for multiple lines
+            this.score += baseScore * linesCleared * multiLineBonus
+
+            // Show bonus information
+            if (linesCleared > 1) {
+                this.showMultiLineBonus(linesCleared)
+            }
+
             updateScoreDisplay(this.score)
             this.render()
         }
 
         return linesCleared
+    }
+
+    // Show a visual notification of the multi-line bonus
+    private showMultiLineBonus(linesCleared: number): void {
+        const ctx = this.ctx
+        const gridHeight = config.gridSize * config.cellSize
+
+        // Save current context state
+        ctx.save()
+
+        // Set up text display
+        ctx.font = 'bold 24px Arial'
+        ctx.fillStyle = '#FFD700' // Gold color for bonus text
+        ctx.textAlign = 'center'
+        ctx.shadowColor = 'rgba(0,0,0,0.5)'
+        ctx.shadowBlur = 5
+
+        // Show bonus message
+        const bonusText = `${linesCleared}x MULTIPLIER!`
+        ctx.fillText(bonusText, this.canvas.width / 2, gridHeight / 2)
+
+        // Restore context state
+        ctx.restore()
+
+        // Message will disappear on next render
+    }
+
+    // Method to set up a specific cell state
+    setCellState(x: number, y: number, color: string | null): void {
+        this.board.setCellState(x, y, color)
+    }
+
+    // Set the entire board from a board state
+    setBoard(boardState: Board): void {
+        this.board = boardState
+        this.render()
+    }
+
+    // Clear the grid completely
+    clearGrid(): void {
+        this.board.reset()
+        this.render()
+    }
+
+    // Get the current board state
+    getBoard(): Board {
+        return this.board
     }
 }

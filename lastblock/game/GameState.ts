@@ -1,7 +1,15 @@
 import { config } from '../config/gameConfig'
 import { Block } from '../components/Block'
 import { Grid } from '../components/Grid'
-import { renderAvailablePieces, renderGameOver, renderPlayAgainButton, pointInRect } from '../utils/uiHelpers'
+import { Board } from '../models/Board'
+import {
+    renderAvailablePieces,
+    renderGameOver,
+    renderPlayAgainButton,
+    pointInRect,
+    updateScoreDisplay,
+} from '../utils/uiHelpers'
+import { scenarios, TestScenario } from './scenarios'
 
 export class GameState {
     score: number = 0
@@ -238,7 +246,59 @@ export class GameState {
         }
     }
 
-    newGame(): void {
+    // Load a predefined test scenario
+    loadTestScenario(scenarioId: string): void {
+        // Check if the scenario exists
+        if (!scenarios[scenarioId]) {
+            console.error(`Scenario "${scenarioId}" not found.`)
+            return
+        }
+
+        // Reset the board first
+        this.grid.clearGrid()
+        this.score = 0
+
+        const scenario = scenarios[scenarioId]
+
+        // Apply the board state from the scenario
+        const board = new Board()
+        scenario.boardState.forEach((row, y) => {
+            row.forEach((cell, x) => {
+                if (cell) {
+                    board.setCellState(x, y, cell)
+                }
+            })
+        })
+
+        this.grid.setBoard(board)
+
+        // Configure available pieces
+        this.availablePieces = []
+
+        scenario.availablePieces.forEach((pieceConfig, index) => {
+            if (index < config.maxAvailablePieces) {
+                const newPiece = new Block(pieceConfig.shape, index)
+                newPiece.color = pieceConfig.color
+                this.availablePieces.push(newPiece)
+            }
+        })
+
+        // If we don't have enough pieces, generate random ones to fill the slots
+        while (this.availablePieces.length < config.maxAvailablePieces) {
+            this.generateNewPiece()
+        }
+
+        // Update the display
+        this.grid.render()
+        this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
+        renderAvailablePieces(this.overlayCtx, this.availablePieces)
+
+        // Update score display
+        updateScoreDisplay(this.score)
+    }
+
+    // Extend newGame to accept an optional scenario ID
+    newGame(scenarioId?: string): void {
         // Reset game state
         this.score = 0
         this.isGameOver = false
@@ -257,9 +317,14 @@ export class GameState {
             this.generateNewPiece()
         }
 
-        // Redraw the overlay canvas
-        this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
-        renderAvailablePieces(this.overlayCtx, this.availablePieces)
+        // Load test scenario if specified
+        if (scenarioId) {
+            this.loadTestScenario(scenarioId)
+        } else {
+            // Redraw the overlay canvas
+            this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
+            renderAvailablePieces(this.overlayCtx, this.availablePieces)
+        }
     }
 
     setupGameOverEvents(): void {
