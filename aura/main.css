@@ -1,0 +1,428 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --app-max-width: 414px;
+  --app-height: 736px;
+  --primary-color: #6a1b9a;
+  --secondary-color: #38006b;
+  --text-color: #ffffff;
+  --font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --title-font-family: 'Exo 2', var(--font-family);
+  --ui-font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --danger-color: #cf6679;
+  --warning-color: #ff9800;
+  --care-color: #03dac5;
+  --min-font-size: 16px;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: #000;
+  color: var(--text-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--min-font-size);
+}
+
+/* Base styles for both mobile and desktop */
+aura-screen {
+  background-color: #000;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* On desktop, create a bounding box for testing */
+@media (min-width: 500px) {
+  body {
+    background-color: #202020;
+    padding: 20px;
+  }
+  
+  aura-screen {
+    width: var(--app-max-width);
+    height: var(--app-height);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    margin: 0 auto;
+  }
+}
+
+/* Screen styles */
+.screen {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url('./assets/aura-cover.jpeg');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-align: center;
+  overflow-y: auto;
+}
+
+/* Updated welcome screen styles */
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.welcome-intro {
+  font-family: var(--font-family);
+  font-size: 1.2rem;
+  font-weight: 300;
+  letter-spacing: 3px;
+  opacity: 0.8;
+  text-transform: lowercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.aura-title {
+  font-family: var(--title-font-family);
+  font-size: 4.5rem;
+  font-weight: 900;
+  letter-spacing: 12px;
+  margin: 10px 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+}
+
+.start-button {
+  font-family: var(--ui-font-family);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin-top: 40px;
+  padding: 12px 36px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.start-button:hover, .start-button:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.start-button:active {
+  transform: scale(0.98);
+}
+
+/* General UI element styles using Source Sans 3 */
+button, 
+input, 
+select, 
+textarea, 
+.ui-element {
+  font-family: var(--ui-font-family);
+}
+
+/* Not Found and other page styles */
+.not-found-screen h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+a {
+  font-family: var(--ui-font-family);
+  color: #bb86fc;
+  text-decoration: none;
+  padding: 8px 16px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Common components styles */
+h2, h3 {
+  font-family: var(--font-family);
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+p {
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
+  font-size: max(16px, 1rem);
+}
+
+.small-text, .small-note {
+  font-size: max(16px, 0.9rem);
+  opacity: 0.8;
+  margin-top: 1rem;
+}
+
+.emphasis {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 12px 0;
+}
+
+button {
+  font-family: var(--ui-font-family);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  color: white;
+  cursor: pointer;
+  font-size: max(16px, 1rem);
+  letter-spacing: 1px;
+  padding: 10px 24px;
+  transition: all 0.3s ease;
+}
+
+button:hover, button:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.next-button {
+  background-color: rgba(106, 27, 154, 0.4);
+}
+
+.dismiss-button {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.restart-button {
+  background-color: rgba(106, 27, 154, 0.4);
+  margin-top: 30px;
+  padding: 12px 30px;
+}
+
+/* Notification card styles */
+.notification-card {
+  background: rgba(30, 30, 30, 0.85);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 340px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-card.danger {
+  border-left: 4px solid var(--danger-color);
+}
+
+.notification-card.warning {
+  border-left: 4px solid var(--warning-color);
+}
+
+.notification-card.care {
+  border-left: 4px solid var(--care-color);
+}
+
+.notification-card.sad {
+  border-left: 4px solid #7986cb;
+}
+
+.notification-icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+
+/* Assistant page styles */
+.assistant-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+}
+
+.assistant-avatar {
+  margin-bottom: 24px;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--title-font-family);
+  font-size: 36px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.message-bubble {
+  background-color: rgba(30, 30, 30, 0.85);
+  border-radius: 18px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 100%;
+}
+
+/* Todo list styles */
+.todo-list {
+  background-color: rgba(30, 30, 30, 0.85);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 340px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-item input[type="checkbox"] {
+  margin-right: 12px;
+}
+
+.todo-item.highlighted {
+  background-color: rgba(106, 27, 154, 0.2);
+  border-radius: 6px;
+}
+
+/* Message related styles */
+.message-preview {
+  background-color: rgba(20, 20, 20, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.sender {
+  font-weight: 600;
+}
+
+.time {
+  opacity: 0.7;
+}
+
+.message-content p {
+  margin-bottom: 5px;
+  font-size: max(16px, 0.95rem);
+}
+
+.redacted {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+/* Status indicators */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+  font-size: max(16px, 0.9rem);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #555;
+  margin-right: 8px;
+}
+
+.status-dot.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.connection-status {
+  background-color: rgba(20, 20, 20, 0.5);
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+  font-size: max(16px, 0.9rem);
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.status-text.disabled {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+/* Final screen styles */
+.final-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 340px;
+}
+
+.just-us-screen {
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url('./assets/aura-cover.jpeg');
+  background-size: cover;
+}

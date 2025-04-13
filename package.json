@@ -4,14 +4,16 @@
     "type": "module",
     "private": true,
     "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "sharp": "^0.34.1"
     },
     "peerDependencies": {
         "typescript": "^5"
     },
     "scripts": {
         "build": "bun build --outdir=dist --minify --target=browser --no-sourcemap",
-        "start": "bun run build && bun serve dist/index.js"
+        "start": "bun run build && bun serve dist/index.js",
+        "generate-icons": "bun run ./aura/icons/generate-icons.ts"
     },
     "prettier": {
         "singleQuote": true,
