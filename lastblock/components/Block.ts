@@ -9,6 +9,7 @@ export class Block {
     y: number
     isAvailable: boolean
     shapeName: string
+    scaleFactor: number
 
     constructor(shape?: boolean[][], position?: number, color?: string) {
         this.x = 0
@@ -33,16 +34,33 @@ export class Block {
         if (position !== undefined) {
             // Position this piece in the available pieces area
             const canvasWidth = config.gridSize * config.cellSize
-            const pieceWidth = this.shape[0].length * config.cellSize
+
+            // Get piece dimensions and calculate the scale factor for large pieces
+            const pieceWidth = this.shape[0].length
+            const pieceHeight = this.shape.length
+
+            // Determine if this is a large piece that needs scaling
+            // We'll scale down pieces that are wider than 4 tiles
+            const maxNormalWidth = 4
+            const scaleFactor = pieceWidth > maxNormalWidth ? maxNormalWidth / pieceWidth : 1
+
+            // Apply the scale factor to the effective cell size for this piece
+            const effectiveCellSize = config.cellSize * scaleFactor
+
+            // Calculate the scaled piece dimensions
+            const scaledPieceWidth = pieceWidth * effectiveCellSize
+            const scaledPieceHeight = pieceHeight * effectiveCellSize
 
             // Calculate the x position based on the piece's index
             const spacing = canvasWidth / config.maxAvailablePieces
-            this.x = spacing / 2 - pieceWidth / 2 + position * spacing
+            this.x = spacing / 2 - scaledPieceWidth / 2 + position * spacing
 
             // Calculate the y position (bottom area of the canvas)
             const gridHeight = config.gridSize * config.cellSize
-            const pieceHeight = this.shape.length * config.cellSize
-            this.y = gridHeight + config.pieceAreaHeight / 2 - pieceHeight / 2
+            this.y = gridHeight + config.pieceAreaHeight / 2 - scaledPieceHeight / 2
+
+            // Store the scale factor as a property so render() can use it
+            this.scaleFactor = scaleFactor
         }
     }
 
@@ -52,7 +70,7 @@ export class Block {
     }
 
     contains(px: number, py: number): boolean {
-        const cellSize = config.cellSize
+        const cellSize = config.cellSize * (this.scaleFactor || 1)
 
         // Calculate the boundaries of this piece
         const left = this.x
@@ -77,7 +95,7 @@ export class Block {
     }
 
     render(ctx: CanvasRenderingContext2D): void {
-        const cellSize = config.cellSize
+        const cellSize = config.cellSize * (this.scaleFactor || 1)
 
         for (let y = 0; y < this.shape.length; y++) {
             for (let x = 0; x < this.shape[y].length; x++) {
@@ -165,6 +183,86 @@ export class Block {
                 ctx.beginPath()
                 ctx.moveTo(x + padding, y + size / 2)
                 ctx.lineTo(x + size - padding, y + size / 2)
+                ctx.stroke()
+                break
+
+            case 'Line3':
+                // Draw a horizontal line symbol (medium length)
+                ctx.beginPath()
+                ctx.moveTo(x + padding * 1.2, y + size / 2)
+                ctx.lineTo(x + size - padding * 1.2, y + size / 2)
+                ctx.stroke()
+                // Add dots to indicate 3 units
+                ctx.beginPath()
+                ctx.arc(x + size * 0.25, y + size / 2, size * 0.06, 0, Math.PI * 2)
+                ctx.arc(x + size * 0.5, y + size / 2, size * 0.06, 0, Math.PI * 2)
+                ctx.arc(x + size * 0.75, y + size / 2, size * 0.06, 0, Math.PI * 2)
+                ctx.fill()
+                break
+
+            case 'Line5':
+                // Draw a horizontal line symbol with pattern indicating 5 units
+                ctx.beginPath()
+                ctx.moveTo(x + padding * 0.8, y + size / 2)
+                ctx.lineTo(x + size - padding * 0.8, y + size / 2)
+                ctx.stroke()
+                // Add dots to indicate 5 units
+                ctx.beginPath()
+                for (let i = 1; i <= 5; i++) {
+                    ctx.arc(x + (size * i) / 6, y + size / 2, size * 0.05, 0, Math.PI * 2)
+                }
+                ctx.fill()
+                break
+
+            case 'Line2':
+                // Draw a shorter horizontal line symbol
+                ctx.beginPath()
+                ctx.moveTo(x + padding * 1.5, y + size / 2)
+                ctx.lineTo(x + size - padding * 1.5, y + size / 2)
+                ctx.stroke()
+                break
+
+            case 'LineVertical':
+                // Draw a vertical line symbol
+                ctx.beginPath()
+                ctx.moveTo(x + size / 2, y + padding)
+                ctx.lineTo(x + size / 2, y + size - padding)
+                ctx.stroke()
+                break
+
+            case 'LineVertical3':
+                // Draw a vertical line symbol (medium length)
+                ctx.beginPath()
+                ctx.moveTo(x + size / 2, y + padding * 1.2)
+                ctx.lineTo(x + size / 2, y + size - padding * 1.2)
+                ctx.stroke()
+                // Add dots to indicate 3 units
+                ctx.beginPath()
+                ctx.arc(x + size / 2, y + size * 0.25, size * 0.06, 0, Math.PI * 2)
+                ctx.arc(x + size / 2, y + size * 0.5, size * 0.06, 0, Math.PI * 2)
+                ctx.arc(x + size / 2, y + size * 0.75, size * 0.06, 0, Math.PI * 2)
+                ctx.fill()
+                break
+
+            case 'LineVertical5':
+                // Draw a vertical line symbol with pattern indicating 5 units
+                ctx.beginPath()
+                ctx.moveTo(x + size / 2, y + padding * 0.8)
+                ctx.lineTo(x + size / 2, y + size - padding * 0.8)
+                ctx.stroke()
+                // Add dots to indicate 5 units
+                ctx.beginPath()
+                for (let i = 1; i <= 5; i++) {
+                    ctx.arc(x + size / 2, y + (size * i) / 6, size * 0.05, 0, Math.PI * 2)
+                }
+                ctx.fill()
+                break
+
+            case 'LineVertical2':
+                // Draw a shorter vertical line symbol
+                ctx.beginPath()
+                ctx.moveTo(x + size / 2, y + padding * 1.5)
+                ctx.lineTo(x + size / 2, y + size - padding * 1.5)
                 ctx.stroke()
                 break
 

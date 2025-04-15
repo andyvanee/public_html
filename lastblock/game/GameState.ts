@@ -9,7 +9,7 @@ import {
     pointInRect,
     updateScoreDisplay,
 } from '../utils/uiHelpers'
-import { scenarios, TestScenario } from './scenarios'
+import { scenarios } from './scenarios'
 
 export class GameState {
     score: number = 0
@@ -29,6 +29,7 @@ export class GameState {
     overlayCanvas: HTMLCanvasElement
     mainCtx: CanvasRenderingContext2D
     overlayCtx: CanvasRenderingContext2D
+    private cursorOffset: number = 20
 
     constructor() {
         // Get canvas references
@@ -50,6 +51,11 @@ export class GameState {
 
         // Setup event listeners
         this.setupEventListeners()
+
+        // Listen for request-score-update events
+        document.addEventListener('request-score-update', () => {
+            updateScoreDisplay(this.score)
+        })
     }
 
     initialize(): void {
@@ -69,7 +75,7 @@ export class GameState {
         this.setupGameOverEvents()
 
         // Set up new game button
-        document.getElementById('new-game-btn')?.addEventListener('click', this.newGame.bind(this))
+        document.getElementById('new-game-btn')?.addEventListener('click', () => this.newGame())
     }
 
     generateInitialPieces(): void {
@@ -97,6 +103,34 @@ export class GameState {
         }
     }
 
+    findPieceAtPosition(x: number, y: number): Block | null {
+        const canvasWidth = this.overlayCanvas.width
+        const gridHeight = config.gridSize * config.cellSize
+
+        // Check if the click is in the pieces area (bottom row)
+        if (y > gridHeight) {
+            // Determine which third of the screen was clicked
+            const third = Math.floor((x / canvasWidth) * config.maxAvailablePieces)
+
+            // Bound the third to valid indices (0 to maxAvailablePieces-1)
+            const boundedThird = Math.max(0, Math.min(config.maxAvailablePieces - 1, third))
+
+            // Get the piece at this position if available
+            if (this.availablePieces[boundedThird] && this.availablePieces[boundedThird].isAvailable) {
+                return this.availablePieces[boundedThird]
+            }
+        } else {
+            // Traditional hit testing for pieces dragged onto the grid
+            for (let i = this.availablePieces.length - 1; i >= 0; i--) {
+                const piece = this.availablePieces[i]
+                if (piece.isAvailable && piece.contains(x, y)) {
+                    return piece
+                }
+            }
+        }
+        return null
+    }
+
     animateDrag(): void {
         // Clear the canvas
         this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
@@ -110,39 +144,65 @@ export class GameState {
             const offsetX = this.dragCurrentX - this.dragStartX
             const offsetY = this.dragCurrentY - this.dragStartY
 
-            // Update the piece position
+            // Update the piece position without adding the cursor offset again
             this.activePiece.x += offsetX
-            this.activePiece.y += offsetY
+            this.activePiece.y += offsetY // Removed the cursor offset here to prevent continuous drift
 
             // Update drag start point for next frame
             this.dragStartX = this.dragCurrentX
             this.dragStartY = this.dragCurrentY
 
-            // Calculate the grid cell position using the center of the piece
-            // and considering the halfway point for snapping
-            const pieceWidth = this.activePiece.shape[0].length * cellSize
-            const pieceHeight = this.activePiece.shape.length * cellSize
-            const pieceCenterX = this.activePiece.x + pieceWidth / 2
-            const pieceCenterY = this.activePiece.y + pieceHeight / 2
+            // When dragging a piece, we need to reset its scale factor to 1
+            // so it appears at full size on the grid
+            if (this.activePiece.scaleFactor && this.activePiece.scaleFactor < 1) {
+                // Adjust the piece position to account for scaling up
+                // Center the piece around the cursor
+                const oldScaleFactor = this.activePiece.scaleFactor
+                const pieceWidth = this.activePiece.shape[0].length * cellSize * oldScaleFactor
+                const pieceHeight = this.activePiece.shape.length * cellSize * oldScaleFactor
 
-            // Calculate grid position using center point and rounding to nearest cell
-            const gridX = Math.floor(pieceCenterX / cellSize)
-            const gridY = Math.floor(pieceCenterY / cellSize)
+                // Calculate center of piece
+                const pieceCenterX = this.activePiece.x + pieceWidth / 2
+                const pieceCenterY = this.activePiece.y + pieceHeight / 2
+
+                // Reset scale factor to full size
+                this.activePiece.scaleFactor = 1.0
+
+                // Recalculate new size
+                const newPieceWidth = this.activePiece.shape[0].length * cellSize
+                const newPieceHeight = this.activePiece.shape.length * cellSize
+
+                // Set new position to maintain the same center point
+                this.activePiece.x = pieceCenterX - newPieceWidth / 2
+                this.activePiece.y = pieceCenterY - newPieceHeight / 2
+            }
+
+            // Get piece dimensions
+            const pieceWidth = this.activePiece.shape[0].length
+            const pieceHeight = this.activePiece.shape.length
+
+            // Get the top-left corner of the piece
+            const pieceTopLeftX = this.activePiece.x
+            const pieceTopLeftY = this.activePiece.y
+
+            // Calculate grid position based on the top-left corner of the piece
+            // Adjust the position by adding 0.5 cells for proper snapping
+            const gridX = Math.floor((pieceTopLeftX + cellSize / 2) / cellSize)
+            const gridY = Math.floor((pieceTopLeftY + cellSize / 2) / cellSize)
 
             // Check if within the grid area
-            const isInGridArea = gridY < config.gridSize && gridX < config.gridSize
+            const isInGridArea =
+                gridY >= 0 &&
+                gridY + pieceHeight <= config.gridSize &&
+                gridX >= 0 &&
+                gridX + pieceWidth <= config.gridSize
 
             // Draw the dragged piece
             this.activePiece.render(this.overlayCtx)
 
             // If in grid area, show placement highlight
             if (isInGridArea) {
-                // Need to adjust gridX and gridY by the piece's half-width and half-height
-                // to correctly position it in the grid based on its center
-                const offsetGridX = Math.floor(gridX - Math.floor(this.activePiece.shape[0].length / 2))
-                const offsetGridY = Math.floor(gridY - Math.floor(this.activePiece.shape.length / 2))
-
-                this.grid.highlightValidPlacement(this.activePiece, offsetGridX, offsetGridY, this.overlayCtx)
+                this.grid.highlightValidPlacement(this.activePiece, gridX, gridY, this.overlayCtx)
             }
 
             // Request the next animation frame
@@ -152,16 +212,6 @@ export class GameState {
             cancelAnimationFrame(this.animationFrameId)
             this.animationFrameId = null
         }
-    }
-
-    findPieceAtPosition(x: number, y: number): Block | null {
-        for (let i = this.availablePieces.length - 1; i >= 0; i--) {
-            const piece = this.availablePieces[i]
-            if (piece.isAvailable && piece.contains(x, y)) {
-                return piece
-            }
-        }
-        return null
     }
 
     tryPlacePiece(gridX: number, gridY: number): void {
@@ -176,6 +226,9 @@ export class GameState {
 
             // Update the score reference
             this.score = this.grid.score
+
+            // Update the score display in the UI
+            updateScoreDisplay(this.score)
 
             // Create a new piece to replace the placed one
             this.generateNewPiece()
@@ -304,7 +357,7 @@ export class GameState {
         this.isGameOver = false
 
         // Update UI
-        document.getElementById('score')!.textContent = '0'
+        updateScoreDisplay(this.score)
 
         // Create new grid
         this.grid = new Grid(this.mainCanvas, this.score)
@@ -398,6 +451,13 @@ export class GameState {
             this.dragCurrentX = x
             this.dragCurrentY = y
 
+            // Set initial position with cursor offset
+            const cellSize = config.cellSize * (piece.scaleFactor || 1)
+            const pieceWidth = piece.shape[0].length * cellSize
+            const pieceHeight = piece.shape.length * cellSize
+            piece.x = x - pieceWidth / 2
+            piece.y = y - pieceHeight / 2 - this.cursorOffset
+
             // Start animation loop
             if (this.animationFrameId === null) {
                 this.animationFrameId = requestAnimationFrame(this.animateDrag.bind(this))
@@ -420,25 +480,31 @@ export class GameState {
 
     handleMouseUp(e: MouseEvent): void {
         if (this.isDragging && this.activePiece) {
-            // Calculate grid cell position based on the center of the piece
             const cellSize = config.cellSize
-            const pieceWidth = this.activePiece.shape[0].length * cellSize
-            const pieceHeight = this.activePiece.shape.length * cellSize
-            const pieceCenterX = this.activePiece.x + pieceWidth / 2
-            const pieceCenterY = this.activePiece.y + pieceHeight / 2
 
-            // Calculate grid position using center point
-            const gridX = Math.floor(pieceCenterX / cellSize)
-            const gridY = Math.floor(pieceCenterY / cellSize)
+            // Get piece dimensions
+            const pieceWidth = this.activePiece.shape[0].length
+            const pieceHeight = this.activePiece.shape.length
 
-            // Adjust for piece dimensions (offset from center)
-            const placementGridX = Math.floor(gridX - Math.floor(this.activePiece.shape[0].length / 2))
-            const placementGridY = Math.floor(gridY - Math.floor(this.activePiece.shape.length / 2))
+            // Get the top-left corner of the piece
+            const pieceTopLeftX = this.activePiece.x
+            const pieceTopLeftY = this.activePiece.y
+
+            // Calculate grid position based on the top-left corner of the piece
+            // Adjust the position by adding 0.5 cells for proper snapping
+            const gridX = Math.floor((pieceTopLeftX + cellSize / 2) / cellSize)
+            const gridY = Math.floor((pieceTopLeftY + cellSize / 2) / cellSize)
 
             // Check if piece is within grid area
-            if (gridY < config.gridSize && gridX < config.gridSize) {
+            const isInGridArea =
+                gridY >= 0 &&
+                gridY + pieceHeight <= config.gridSize &&
+                gridX >= 0 &&
+                gridX + pieceWidth <= config.gridSize
+
+            if (isInGridArea) {
                 // Try to place the piece
-                this.tryPlacePiece(placementGridX, placementGridY)
+                this.tryPlacePiece(gridX, gridY)
             } else {
                 // Return the piece to its original position
                 this.repositionAvailablePieces()
@@ -478,6 +544,13 @@ export class GameState {
                 this.dragCurrentX = x
                 this.dragCurrentY = y
 
+                // Set initial position with cursor offset
+                const cellSize = config.cellSize * (piece.scaleFactor || 1)
+                const pieceWidth = piece.shape[0].length * cellSize
+                const pieceHeight = piece.shape.length * cellSize
+                piece.x = x - pieceWidth / 2
+                piece.y = y - pieceHeight / 2 - this.cursorOffset
+
                 // Start animation loop
                 if (this.animationFrameId === null) {
                     this.animationFrameId = requestAnimationFrame(this.animateDrag.bind(this))
@@ -502,25 +575,31 @@ export class GameState {
 
     handleTouchEnd(e: TouchEvent): void {
         if (this.isDragging && this.activePiece) {
-            // Calculate grid cell position based on the center of the piece
             const cellSize = config.cellSize
-            const pieceWidth = this.activePiece.shape[0].length * cellSize
-            const pieceHeight = this.activePiece.shape.length * cellSize
-            const pieceCenterX = this.activePiece.x + pieceWidth / 2
-            const pieceCenterY = this.activePiece.y + pieceHeight / 2
 
-            // Calculate grid position using center point
-            const gridX = Math.floor(pieceCenterX / cellSize)
-            const gridY = Math.floor(pieceCenterY / cellSize)
+            // Get piece dimensions
+            const pieceWidth = this.activePiece.shape[0].length
+            const pieceHeight = this.activePiece.shape.length
 
-            // Adjust for piece dimensions (offset from center)
-            const placementGridX = Math.floor(gridX - Math.floor(this.activePiece.shape[0].length / 2))
-            const placementGridY = Math.floor(gridY - Math.floor(this.activePiece.shape.length / 2))
+            // Get the top-left corner of the piece
+            const pieceTopLeftX = this.activePiece.x
+            const pieceTopLeftY = this.activePiece.y
+
+            // Calculate grid position based on the top-left corner of the piece
+            // Adjust the position by adding 0.5 cells for proper snapping
+            const gridX = Math.floor((pieceTopLeftX + cellSize / 2) / cellSize)
+            const gridY = Math.floor((pieceTopLeftY + cellSize / 2) / cellSize)
 
             // Check if piece is within grid area
-            if (gridY < config.gridSize && gridX < config.gridSize) {
+            const isInGridArea =
+                gridY >= 0 &&
+                gridY + pieceHeight <= config.gridSize &&
+                gridX >= 0 &&
+                gridX + pieceWidth <= config.gridSize
+
+            if (isInGridArea) {
                 // Try to place the piece
-                this.tryPlacePiece(placementGridX, placementGridY)
+                this.tryPlacePiece(gridX, gridY)
             } else {
                 // Return the piece to its original position
                 this.repositionAvailablePieces()

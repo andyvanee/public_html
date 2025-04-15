@@ -1,6 +1,8 @@
+import { watch } from 'fs'
 import { $ } from 'bun'
 
 $.cwd(import.meta.dirname)
+
 await $`bun run aura/index.ts`
 await $`bun run lastblock/index.ts`
 
@@ -23,6 +25,24 @@ const server = Bun.serve({
             return fouroFour()
         }
     },
+})
+
+watch('./lastblock', { recursive: true }, async (event, filename) => {
+    console.log(`File changed: ${filename}`)
+    try {
+        await $`bun run lastblock/index.ts`
+    } catch (error) {
+        console.error(`Error in lastblock build: ${error}`)
+    }
+})
+
+watch('./aura', { recursive: true }, async (event, filename) => {
+    console.log(`File changed: ${filename}`)
+    try {
+        await $`bun run aura/index.ts`
+    } catch (error) {
+        console.error(`Error in aura build: ${error}`)
+    }
 })
 
 console.log(`Server running at http://localhost:${server.port}`)

@@ -2,9 +2,19 @@ import { config } from '../config/gameConfig'
 import { Block } from '../components/Block'
 
 /**
- * Updates the score display in the UI
+ * Updates the score display in the UI using custom events
  */
 export function updateScoreDisplay(score: number): void {
+    // Dispatch a custom event with the score
+    document.dispatchEvent(
+        new CustomEvent('score-updated', {
+            detail: { score },
+            bubbles: true,
+            composed: true,
+        }),
+    )
+
+    // For backwards compatibility, still update any elements with ID 'score'
     const scoreElement = document.getElementById('score')
     if (scoreElement) {
         scoreElement.textContent = score.toString()

@@ -20,6 +20,10 @@
     --button-background: var(--color-light-brown);
     --button-text: var(--color-dark-brown);
     --button-hover: var(--color-tan);
+    
+    /* Mobile wrapper sizes */
+    --mobile-wrapper-width: 414px;
+    --mobile-wrapper-height: 736px;
 }
 
 * {
@@ -35,6 +39,8 @@ body {
     justify-content: center;
     padding: 20px;
     color: var(--text-color);
+    height: 100vh;
+    overflow-x: hidden;
 }
 
 .container {
@@ -44,6 +50,39 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+}
+
+.mobile-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Mobile wrapper styles */
+@media (min-width: 600px) {
+    body {
+        background-color: #111111;
+        align-items: center;
+    }
+    
+    .mobile-wrapper {
+        width: var(--mobile-wrapper-width);
+        height: var(--mobile-wrapper-height);
+        background-color: var(--background-color);
+        border-radius: 20px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+    
+    .container {
+        max-height: 100%;
+        overflow-y: auto;
+        padding: 15px;
+        width: 100%;
+        margin: 0;
+    }
 }
 
 .game-container {
@@ -170,8 +209,16 @@ footer {
   background-color: var(--button-hover);
 }
 
+.controls {
+    margin-top: 15px;
+}
+
 @media (max-width: 600px) {
     .game-area {
         width: 100%;
+    }
+    
+    .container {
+        padding: 10px;
     }
 }

@@ -104,6 +104,3 @@ export class TestModeUI extends HTMLElement {
         return urlParams.has('testmode')
     }
 }
-
-// Register the web component
-customElements.define('test-mode-ui', TestModeUI)

@@ -33,3 +33,5 @@ if (!(build.success && entrypoint)) {
 }
 
 await Bun.write(`${target}/entrypoint.js`, entrypoint)
+
+console.log(`Build successful! Files copied to ${target}.`)
