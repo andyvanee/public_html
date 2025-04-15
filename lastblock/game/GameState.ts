@@ -29,7 +29,7 @@ export class GameState {
     overlayCanvas: HTMLCanvasElement
     mainCtx: CanvasRenderingContext2D
     overlayCtx: CanvasRenderingContext2D
-    private cursorOffset: number = 20
+    private cursorOffset: number = 40 // Reduced from 50px to 40px for better placement
 
     constructor() {
         // Get canvas references
@@ -430,6 +430,18 @@ export class GameState {
         })
     }
 
+    // Helper method to set initial piece position when dragging starts
+    private setInitialPiecePosition(piece: Block, x: number, y: number): void {
+        const cellSize = config.cellSize * (piece.scaleFactor || 1)
+        const pieceWidth = piece.shape[0].length * cellSize
+        const pieceHeight = piece.shape.length * cellSize
+
+        // Position the piece with its center horizontally aligned with the finger/cursor
+        // and vertically positioned above the finger/cursor by the offset amount
+        piece.x = x - pieceWidth / 2
+        piece.y = y - pieceHeight - this.cursorOffset
+    }
+
     // Event handlers
     handleMouseDown(e: MouseEvent): void {
         // Skip if game is over
@@ -451,12 +463,8 @@ export class GameState {
             this.dragCurrentX = x
             this.dragCurrentY = y
 
-            // Set initial position with cursor offset
-            const cellSize = config.cellSize * (piece.scaleFactor || 1)
-            const pieceWidth = piece.shape[0].length * cellSize
-            const pieceHeight = piece.shape.length * cellSize
-            piece.x = x - pieceWidth / 2
-            piece.y = y - pieceHeight / 2 - this.cursorOffset
+            // Set initial position with improved positioning
+            this.setInitialPiecePosition(piece, x, y)
 
             // Start animation loop
             if (this.animationFrameId === null) {
@@ -544,12 +552,8 @@ export class GameState {
                 this.dragCurrentX = x
                 this.dragCurrentY = y
 
-                // Set initial position with cursor offset
-                const cellSize = config.cellSize * (piece.scaleFactor || 1)
-                const pieceWidth = piece.shape[0].length * cellSize
-                const pieceHeight = piece.shape.length * cellSize
-                piece.x = x - pieceWidth / 2
-                piece.y = y - pieceHeight / 2 - this.cursorOffset
+                // Set initial position with improved positioning
+                this.setInitialPiecePosition(piece, x, y)
 
                 // Start animation loop
                 if (this.animationFrameId === null) {

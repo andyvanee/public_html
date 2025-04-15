@@ -9,7 +9,7 @@ export class Block {
     y: number
     isAvailable: boolean
     shapeName: string
-    scaleFactor: number
+    scaleFactor!: number
 
     constructor(shape?: boolean[][], position?: number, color?: string) {
         this.x = 0

@@ -171,14 +171,22 @@ export class Grid {
             return false
         }
 
+        // Count squares placed for scoring
+        let squaresPlaced = 0
+
         // Place the piece on the grid
         for (let y = 0; y < piece.shape.length; y++) {
             for (let x = 0; x < piece.shape[y].length; x++) {
                 if (piece.shape[y][x]) {
                     this.board.cells[gridY + y][gridX + x] = piece.color
+                    squaresPlaced++
                 }
             }
         }
+
+        // Add 15 points per square placed
+        this.score += squaresPlaced * 15
+        updateScoreDisplay(this.score)
 
         // Update the display
         this.render()
@@ -248,13 +256,14 @@ export class Grid {
                 this.board.cells[y][x] = null
             })
 
-            // Apply multiplier for multi-line clears
-            const baseScore = 100
-            const multiplier = linesCleared // Each line cleared adds a 1x multiplier
-            const multiLineBonus = linesCleared > 1 ? linesCleared : 1 // Multiplier is applied only for multiple lines
+            // Apply new scoring system:
+            // - 250 points per line cleared
+            // - Multiplier for multi-line clears
+            const pointsPerLine = 250
+            const multiplier = linesCleared > 1 ? linesCleared : 1 // Multiplier only applies for multiple lines
 
-            // Update score - base score per line with multiplier for multiple lines
-            this.score += baseScore * linesCleared * multiLineBonus
+            // Update score - 250 points per line with multiplier for multiple lines
+            this.score += pointsPerLine * linesCleared * multiplier
 
             // Show bonus information
             if (linesCleared > 1) {

@@ -28,7 +28,14 @@ const server = Bun.serve({
 })
 
 watch('./lastblock', { recursive: true }, async (event, filename) => {
+    if (!filename) return
+
+    if (!(filename.endsWith('.ts') || filename.endsWith('.css') || filename.endsWith('.html'))) {
+        return
+    }
+
     console.log(`File changed: ${filename}`)
+
     try {
         await $`bun run lastblock/index.ts`
     } catch (error) {
@@ -37,7 +44,14 @@ watch('./lastblock', { recursive: true }, async (event, filename) => {
 })
 
 watch('./aura', { recursive: true }, async (event, filename) => {
+    if (!filename) return
+
+    if (!(filename.endsWith('.ts') || filename.endsWith('.css') || filename.endsWith('.html'))) {
+        return
+    }
+
     console.log(`File changed: ${filename}`)
+
     try {
         await $`bun run aura/index.ts`
     } catch (error) {

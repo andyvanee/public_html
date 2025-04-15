@@ -1,6 +1,6 @@
 // Service Worker for LastBlock PWA
 
-const CACHE_NAME = 'lastblock-cache-v1'
+const CACHE_NAME = 'lastblock-cache-v1744692752993'
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -25,7 +25,6 @@ self.addEventListener('install', (event) => {
         caches
             .open(CACHE_NAME)
             .then((cache) => {
-                console.log('Caching app assets')
                 return cache.addAll(ASSETS_TO_CACHE)
             })
             .then(() => self.skipWaiting()), // Force activation on all clients
@@ -41,7 +40,6 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     keyList.map((key) => {
                         if (key !== CACHE_NAME) {
-                            console.log('Removing old cache', key)
                             return caches.delete(key)
                         }
                     }),

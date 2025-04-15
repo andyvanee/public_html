@@ -1,10 +1,16 @@
 import { $, ShellError } from 'bun'
 import { generateIcons } from './icons/generate-icons'
+import * as fs from 'fs'
+import * as path from 'path'
 
 process.chdir(import.meta.dirname)
 
+// Generate a timestamp-based version for cache busting
+const buildVersion = Date.now().toString()
+console.log(`Build version: ${buildVersion}`)
+
 const target = '../docs/lastblock'
-const sources = ['index.html', 'favicon.svg', 'main.css', 'manifest.json', 'service-worker.js']
+const sources = ['favicon.svg', 'main.css', 'manifest.json', 'service-worker.js']
 const icons = [
     'icons/lastblock-icon.svg',
     'icons/icon-72x72.png',
@@ -34,6 +40,27 @@ try {
         await $`cp ${source} ${target}/${source}`
     }
 
+    // Special handling for HTML file with cache-busting URLs
+    const htmlContent = fs.readFileSync('index.html', 'utf8')
+
+    // Add version parameter to script and CSS references
+    const updatedHtml = htmlContent
+        .replace(/main\.css(\?v=[\d]+)?/g, `main.css?v=${buildVersion}`)
+        .replace(/entrypoint\.js(\?v=[\d]+)?/g, `entrypoint.js?v=${buildVersion}`)
+        .replace(/service-worker\.js(\?v=[\d]+)?/g, `service-worker.js?v=${buildVersion}`)
+        .replace(/manifest\.json(\?v=[\d]+)?/g, `manifest.json?v=${buildVersion}`)
+
+    fs.writeFileSync(path.join(target, 'index.html'), updatedHtml)
+
+    // Also update service worker to include version
+    const swContent = fs.readFileSync('service-worker.js', 'utf8')
+    const updatedSw = swContent.replace(
+        /const CACHE_NAME = ['"]lastblock-cache-v\d+['"]/g,
+        `const CACHE_NAME = 'lastblock-cache-v${buildVersion}'`,
+    )
+
+    fs.writeFileSync(path.join(target, 'service-worker.js'), updatedSw)
+
     // Ensure icons directory exists and copy icons
     await $`mkdir -p ${target}/icons`
     for (const icon of icons) {
@@ -62,4 +89,4 @@ if (!(build.success && entrypoint)) {
 
 await Bun.write(`${target}/entrypoint.js`, entrypoint)
 
-console.log(`Build successful! Files copied to ${target}.`)
+console.log(`Build successful! Files copied to ${target} with version ${buildVersion}.`)

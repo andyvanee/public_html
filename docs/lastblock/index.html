@@ -20,18 +20,18 @@
         
         <!-- Standard icons and manifest -->
         <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-        <link rel="manifest" href="./manifest.json" />
+        <link rel="manifest" href="./manifest.json?v=1744692752993" />
         
-        <link rel="stylesheet" href="./main.css" />
-        <script type="module" src="./entrypoint.js"></script>
+        <link rel="stylesheet" href="./main.css?v=1744692752993" />
+        <script type="module" src="./entrypoint.js?v=1744692752993"></script>
         
         <!-- Service Worker registration -->
         <script>
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./service-worker.js')
+                    navigator.serviceWorker.register('./service-worker.js?v=1744692752993')
                         .then(registration => {
-                            console.log('Service Worker registered successfully:', registration);
+                            // Success case - no logging
                         })
                         .catch(error => {
                             console.log('Service Worker registration failed:', error);
