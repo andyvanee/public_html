@@ -2,6 +2,7 @@ import { GameState } from './game/GameState'
 import { TestModeUI } from './components/TestModeUI'
 import { GameHeader } from './components/GameHeader'
 import { InfoScreen } from './components/InfoScreen'
+import { Toast } from './components/Toast'
 import { updateScoreDisplay } from './utils/uiHelpers'
 
 // Register all custom elements in one central location
@@ -11,6 +12,12 @@ customElements.define('test-mode-ui', TestModeUI)
 
 window.addEventListener('DOMContentLoaded', () => {
     const game = new GameState()
+
+    // Initialize Toast component
+    const toastCanvas = document.getElementById('toast-canvas') as HTMLCanvasElement
+    const toast = new Toast(toastCanvas)
+
+    // Initialize game
     game.initialize()
 
     // Set up test mode UI if enabled

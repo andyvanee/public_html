@@ -20,13 +20,25 @@ export class GameHeader extends HTMLElement {
             
             h1 {
                 color: var(--text-color, #D4AF91);
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
                 margin: 0;
+                font-size: 18px;
+                font-weight: 400;
+                font-family: var(--font-family);
             }
             
             .score-container {
-                font-size: 1.2rem;
+                font-size: 18px;
                 color: var(--text-color, #D4AF91);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-weight: 400;
+            }
+            
+            .menu-button-container {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
             }
             
             .menu-button {
@@ -34,7 +46,7 @@ export class GameHeader extends HTMLElement {
                 border: none;
                 cursor: pointer;
                 color: var(--text-color, #D4AF91);
-                font-size: 24px;
+                font-size: 1.6rem;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -47,10 +59,11 @@ export class GameHeader extends HTMLElement {
             }
             
             .header-content {
-                display: flex;
-                justify-content: space-between;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
                 align-items: center;
                 width: 100%;
+                padding: 0.5rem 0;
             }
         `
 
@@ -60,29 +73,33 @@ export class GameHeader extends HTMLElement {
 
         // Add title
         const title = document.createElement('h1')
-        title.textContent = 'Last Block'
+        title.textContent = 'Lastblock'
 
         // Create middle section with score
         const scoreContainer = document.createElement('div')
         scoreContainer.className = 'score-container'
-        scoreContainer.innerHTML = 'Score: <span id="score">0</span>'
         this.scoreElement = document.createElement('span')
         this.scoreElement.id = 'score'
         this.scoreElement.textContent = '0'
         scoreContainer.innerHTML = 'Score: '
         scoreContainer.appendChild(this.scoreElement)
 
-        // Create menu button
+        // Create menu button with container
+        const menuButtonContainer = document.createElement('div')
+        menuButtonContainer.className = 'menu-button-container'
+
         this.menuButton = document.createElement('button')
         this.menuButton.className = 'menu-button'
         this.menuButton.innerHTML = '&#9776;' // Hamburger menu icon
         this.menuButton.setAttribute('aria-label', 'Open Information')
         this.menuButton.addEventListener('click', this.handleMenuClick.bind(this))
 
+        menuButtonContainer.appendChild(this.menuButton)
+
         // Add elements to header
         headerContent.appendChild(title)
         headerContent.appendChild(scoreContainer)
-        headerContent.appendChild(this.menuButton)
+        headerContent.appendChild(menuButtonContainer)
 
         // Add to shadow root
         this.shadowRoot!.appendChild(style)

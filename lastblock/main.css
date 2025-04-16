@@ -21,6 +21,12 @@
     --button-text: var(--color-dark-brown);
     --button-hover: var(--color-tan);
     
+    /* Font family */
+    --font-family: 'Source Sans 3', sans-serif;
+    --font-weight-regular: 400;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+    
     /* Mobile wrapper sizes */
     --mobile-wrapper-width: 414px;
     --mobile-wrapper-height: 736px;
@@ -33,7 +39,7 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: var(--font-family);
     background-color: var(--background-color);
     display: flex;
     justify-content: center;
@@ -135,7 +141,7 @@ main {
     aspect-ratio: 4 / 5.5; /* Adjusted aspect ratio for the taller canvas */
 }
 
-#main-canvas, #overlay-canvas {
+#main-canvas, #toast-canvas, #overlay-canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -148,8 +154,13 @@ main {
     z-index: 1;
 }
 
-#overlay-canvas {
+#toast-canvas {
     z-index: 2;
+    pointer-events: none; /* Make toast canvas non-interactive */
+}
+
+#overlay-canvas {
+    z-index: 3;
 }
 
 footer {

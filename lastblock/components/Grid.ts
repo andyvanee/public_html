@@ -9,6 +9,9 @@ export class Grid {
     ctx: CanvasRenderingContext2D
     board: Board
     score: number
+    private isChallengeMode: boolean = false
+    private challengeOutlineColor: string = '#FFD700' // Gold color
+    private challengeOutlineWidth: number = 4
 
     constructor(canvas: HTMLCanvasElement, initialScore: number = 0) {
         this.canvas = canvas
@@ -19,6 +22,11 @@ export class Grid {
         this.board = new Board()
 
         this.render()
+    }
+
+    // Method to set Challenge mode on/off
+    setChallengeMode(isActive: boolean): void {
+        this.isChallengeMode = isActive
     }
 
     render(): void {
@@ -88,6 +96,22 @@ export class Grid {
                     ctx.strokeRect(blockX, blockY, cellSize, cellSize)
                 }
             }
+        }
+
+        // If in challenge mode, draw gold outline around the grid
+        if (this.isChallengeMode) {
+            ctx.beginPath()
+            ctx.strokeStyle = this.challengeOutlineColor
+            ctx.lineWidth = this.challengeOutlineWidth
+
+            // Draw border slightly inside the grid edges to avoid clipping
+            const offset = this.challengeOutlineWidth / 2
+            ctx.strokeRect(
+                offset,
+                offset,
+                config.gridSize * cellSize - this.challengeOutlineWidth,
+                config.gridSize * cellSize - this.challengeOutlineWidth,
+            )
         }
 
         // Draw divider line between grid and pieces area
@@ -279,27 +303,20 @@ export class Grid {
 
     // Show a visual notification of the multi-line bonus
     private showMultiLineBonus(linesCleared: number): void {
-        const ctx = this.ctx
-        const gridHeight = config.gridSize * config.cellSize
+        // Use the Toast component to show the multiplier message
+        const message = `${linesCleared}x MULTIPLIER!`
 
-        // Save current context state
-        ctx.save()
-
-        // Set up text display
-        ctx.font = 'bold 24px Arial'
-        ctx.fillStyle = '#FFD700' // Gold color for bonus text
-        ctx.textAlign = 'center'
-        ctx.shadowColor = 'rgba(0,0,0,0.5)'
-        ctx.shadowBlur = 5
-
-        // Show bonus message
-        const bonusText = `${linesCleared}x MULTIPLIER!`
-        ctx.fillText(bonusText, this.canvas.width / 2, gridHeight / 2)
-
-        // Restore context state
-        ctx.restore()
-
-        // Message will disappear on next render
+        // Dispatch a toast event
+        document.dispatchEvent(
+            new CustomEvent('game-toast', {
+                detail: {
+                    message,
+                    type: 'bonus',
+                },
+                bubbles: true,
+                composed: true,
+            }),
+        )
     }
 
     // Method to set up a specific cell state

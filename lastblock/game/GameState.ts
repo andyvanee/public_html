@@ -31,6 +31,12 @@ export class GameState {
     overlayCtx: CanvasRenderingContext2D
     private cursorOffset: number = 40 // Reduced from 50px to 40px for better placement
 
+    // Challenge mode properties
+    private moveCount: number = 0
+    private isChallengeMode: boolean = false
+    private challengeModeInterval: number = 10 // Trigger challenge mode every 10 moves
+    private challengeBonusPoints: number = 300 // Bonus points for completing a challenge
+
     constructor() {
         // Get canvas references
         this.mainCanvas = document.getElementById('main-canvas') as HTMLCanvasElement
@@ -53,9 +59,7 @@ export class GameState {
         this.setupEventListeners()
 
         // Listen for request-score-update events
-        document.addEventListener('request-score-update', () => {
-            updateScoreDisplay(this.score)
-        })
+        document.addEventListener('request-score-update', this.onScoreUpdateRequest.bind(this))
     }
 
     initialize(): void {
@@ -68,8 +72,8 @@ export class GameState {
 
     setupEventListeners(): void {
         // Add event listeners to the overlay canvas
-        this.overlayCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this))
-        this.overlayCanvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false })
+        this.overlayCanvas.addEventListener('mousedown', this.onCanvasMouseDown.bind(this))
+        this.overlayCanvas.addEventListener('touchstart', this.onCanvasTouchStart.bind(this), { passive: false })
 
         // Setup game over event handlers
         this.setupGameOverEvents()
@@ -230,8 +234,21 @@ export class GameState {
             // Update the score display in the UI
             updateScoreDisplay(this.score)
 
-            // Create a new piece to replace the placed one
-            this.generateNewPiece()
+            // Increment the move counter
+            this.moveCount++
+
+            // Check if we should enter challenge mode
+            if (!this.isChallengeMode && this.moveCount % this.challengeModeInterval === 0) {
+                this.activateChallengeMode()
+            }
+
+            // If in challenge mode, check if all pieces have been used
+            if (this.isChallengeMode) {
+                this.checkChallengeCompletion()
+            } else {
+                // Only generate new pieces in regular mode
+                this.generateNewPiece()
+            }
 
             // Check if game over
             this.checkGameOver()
@@ -382,52 +399,10 @@ export class GameState {
 
     setupGameOverEvents(): void {
         // Handle mouse movement for hover effects
-        this.overlayCanvas.addEventListener('mousemove', (e) => {
-            if (!this.isGameOver) return
-
-            const rect = this.overlayCanvas.getBoundingClientRect()
-            const x = (e.clientX - rect.left) * (this.overlayCanvas.width / rect.width)
-            const y = (e.clientY - rect.top) * (this.overlayCanvas.height / rect.height)
-
-            const buttonBounds = renderPlayAgainButton(this.overlayCtx, false)
-            const isHovering = pointInRect(
-                x,
-                y,
-                buttonBounds.x,
-                buttonBounds.y,
-                buttonBounds.width,
-                buttonBounds.height,
-            )
-
-            if (isHovering !== this.hoveringPlayButton) {
-                this.hoveringPlayButton = isHovering
-                this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
-                renderPlayAgainButton(this.overlayCtx, isHovering)
-            }
-        })
+        this.overlayCanvas.addEventListener('mousemove', this.onCanvasMouseMove.bind(this))
 
         // Handle click to restart game
-        this.overlayCanvas.addEventListener('click', (e) => {
-            if (!this.isGameOver) return
-
-            const rect = this.overlayCanvas.getBoundingClientRect()
-            const x = (e.clientX - rect.left) * (this.overlayCanvas.width / rect.width)
-            const y = (e.clientY - rect.top) * (this.overlayCanvas.height / rect.height)
-
-            const buttonBounds = renderPlayAgainButton(this.overlayCtx, false)
-            const isHovering = pointInRect(
-                x,
-                y,
-                buttonBounds.x,
-                buttonBounds.y,
-                buttonBounds.width,
-                buttonBounds.height,
-            )
-
-            if (isHovering) {
-                this.newGame()
-            }
-        })
+        this.overlayCanvas.addEventListener('click', this.onCanvasClick.bind(this))
     }
 
     // Helper method to set initial piece position when dragging starts
@@ -442,8 +417,44 @@ export class GameState {
         piece.y = y - pieceHeight - this.cursorOffset
     }
 
-    // Event handlers
-    handleMouseDown(e: MouseEvent): void {
+    // Event handler methods
+    private onScoreUpdateRequest(): void {
+        updateScoreDisplay(this.score)
+    }
+
+    private onCanvasMouseMove(e: MouseEvent): void {
+        if (!this.isGameOver) return
+
+        const rect = this.overlayCanvas.getBoundingClientRect()
+        const x = (e.clientX - rect.left) * (this.overlayCanvas.width / rect.width)
+        const y = (e.clientY - rect.top) * (this.overlayCanvas.height / rect.height)
+
+        const buttonBounds = renderPlayAgainButton(this.overlayCtx, false)
+        const isHovering = pointInRect(x, y, buttonBounds.x, buttonBounds.y, buttonBounds.width, buttonBounds.height)
+
+        if (isHovering !== this.hoveringPlayButton) {
+            this.hoveringPlayButton = isHovering
+            this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
+            renderPlayAgainButton(this.overlayCtx, isHovering)
+        }
+    }
+
+    private onCanvasClick(e: MouseEvent): void {
+        if (!this.isGameOver) return
+
+        const rect = this.overlayCanvas.getBoundingClientRect()
+        const x = (e.clientX - rect.left) * (this.overlayCanvas.width / rect.width)
+        const y = (e.clientY - rect.top) * (this.overlayCanvas.height / rect.height)
+
+        const buttonBounds = renderPlayAgainButton(this.overlayCtx, false)
+        const isHovering = pointInRect(x, y, buttonBounds.x, buttonBounds.y, buttonBounds.width, buttonBounds.height)
+
+        if (isHovering) {
+            this.newGame()
+        }
+    }
+
+    private onCanvasMouseDown(e: MouseEvent): void {
         // Skip if game is over
         if (this.isGameOver) return
 
@@ -471,12 +482,12 @@ export class GameState {
                 this.animationFrameId = requestAnimationFrame(this.animateDrag.bind(this))
             }
 
-            document.addEventListener('mousemove', this.handleMouseMove.bind(this))
-            document.addEventListener('mouseup', this.handleMouseUp.bind(this))
+            document.addEventListener('mousemove', this.onDocumentMouseMove.bind(this))
+            document.addEventListener('mouseup', this.onDocumentMouseUp.bind(this))
         }
     }
 
-    handleMouseMove(e: MouseEvent): void {
+    private onDocumentMouseMove(e: MouseEvent): void {
         if (this.isDragging && this.activePiece) {
             const rect = this.overlayCanvas.getBoundingClientRect()
 
@@ -486,7 +497,7 @@ export class GameState {
         }
     }
 
-    handleMouseUp(e: MouseEvent): void {
+    private onDocumentMouseUp(e: MouseEvent): void {
         if (this.isDragging && this.activePiece) {
             const cellSize = config.cellSize
 
@@ -528,12 +539,12 @@ export class GameState {
             renderAvailablePieces(this.overlayCtx, this.availablePieces)
 
             // Remove event listeners
-            document.removeEventListener('mousemove', this.handleMouseMove.bind(this))
-            document.removeEventListener('mouseup', this.handleMouseUp.bind(this))
+            document.removeEventListener('mousemove', this.onDocumentMouseMove.bind(this))
+            document.removeEventListener('mouseup', this.onDocumentMouseUp.bind(this))
         }
     }
 
-    handleTouchStart(e: TouchEvent): void {
+    private onCanvasTouchStart(e: TouchEvent): void {
         if (e.touches.length > 0) {
             const rect = this.overlayCanvas.getBoundingClientRect()
             const touch = e.touches[0]
@@ -560,13 +571,13 @@ export class GameState {
                     this.animationFrameId = requestAnimationFrame(this.animateDrag.bind(this))
                 }
 
-                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false })
-                document.addEventListener('touchend', this.handleTouchEnd.bind(this))
+                document.addEventListener('touchmove', this.onDocumentTouchMove.bind(this), { passive: false })
+                document.addEventListener('touchend', this.onDocumentTouchEnd.bind(this))
             }
         }
     }
 
-    handleTouchMove(e: TouchEvent): void {
+    private onDocumentTouchMove(e: TouchEvent): void {
         if (e.touches.length > 0 && this.isDragging && this.activePiece) {
             e.preventDefault()
             const touch = e.touches[0]
@@ -577,7 +588,7 @@ export class GameState {
         }
     }
 
-    handleTouchEnd(e: TouchEvent): void {
+    private onDocumentTouchEnd(e: TouchEvent): void {
         if (this.isDragging && this.activePiece) {
             const cellSize = config.cellSize
 
@@ -618,8 +629,64 @@ export class GameState {
             renderAvailablePieces(this.overlayCtx, this.availablePieces)
 
             // Remove event listeners
-            document.removeEventListener('touchmove', this.handleTouchMove.bind(this))
-            document.removeEventListener('touchend', this.handleTouchEnd.bind(this))
+            document.removeEventListener('touchmove', this.onDocumentTouchMove.bind(this))
+            document.removeEventListener('touchend', this.onDocumentTouchEnd.bind(this))
+        }
+    }
+
+    // Challenge mode methods
+
+    /**
+     * Activates the challenge mode, displaying a gold outline around the grid
+     */
+    private activateChallengeMode(): void {
+        this.isChallengeMode = true
+
+        // Set the grid to challenge mode so it can display the gold outline
+        this.grid.setChallengeMode(true)
+
+        // Re-render the grid with the challenge outline
+        this.grid.render()
+
+        // Note: Toast notification removed as requested
+    }
+
+    /**
+     * Complete the challenge mode and award bonus points
+     */
+    private completeChallengeMode(): void {
+        // Add bonus points
+        this.score += this.challengeBonusPoints
+        updateScoreDisplay(this.score)
+
+        // Update grid score to keep it in sync
+        this.grid.score = this.score
+
+        // Exit challenge mode
+        this.isChallengeMode = false
+        this.grid.setChallengeMode(false)
+
+        // Generate new pieces
+        this.generateInitialPieces()
+
+        // Re-render everything
+        this.grid.render()
+        this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
+        renderAvailablePieces(this.overlayCtx, this.availablePieces)
+
+        // Note: Toast notification removed as requested
+    }
+
+    /**
+     * Checks if the challenge has been completed (all pieces used)
+     */
+    private checkChallengeCompletion(): void {
+        // Check if any pieces are still available
+        const availablePieces = this.availablePieces.filter((piece) => piece.isAvailable)
+
+        if (availablePieces.length === 0) {
+            // All pieces used - challenge complete!
+            this.completeChallengeMode()
         }
     }
 }
