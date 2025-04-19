@@ -1,87 +1,45 @@
+import { LitElement, html, css } from 'lit'
+import { customElement, property } from 'lit/decorators.js'
 import { scenarios } from '../game/scenarios'
 
-export class TestModeUI extends HTMLElement {
-    private selectEl: HTMLSelectElement
-    private buttonEl: HTMLButtonElement
-    private gameState: any
+@customElement('test-mode-ui')
+export class TestModeUI extends LitElement {
+    @property({ type: Object })
+    private gameState: any = null
 
-    constructor() {
-        super()
+    static styles = css`
+        .test-scenarios-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+        }
 
-        this.attachShadow({ mode: 'open' })
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: white;
+            font-family: inherit;
+            font-size: 14px;
+        }
 
-        // Create the container
-        const container = document.createElement('div')
-        container.className = 'test-scenarios-container'
+        button {
+            padding: 8px 12px;
+            background-color: var(--button-background, #be9b7b);
+            color: var(--button-text, #2a2723);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
 
-        // Create select dropdown
-        this.selectEl = document.createElement('select')
-        this.selectEl.id = 'test-scenario-select'
-
-        // Add default option
-        const defaultOption = document.createElement('option')
-        defaultOption.value = ''
-        defaultOption.textContent = 'Select a test scenario'
-        this.selectEl.appendChild(defaultOption)
-
-        // Add scenarios from the scenarios object
-        Object.entries(scenarios).forEach(([id, scenario]) => {
-            const option = document.createElement('option')
-            option.value = id
-            option.textContent = scenario.name
-            this.selectEl.appendChild(option)
-        })
-
-        // Create load button
-        this.buttonEl = document.createElement('button')
-        this.buttonEl.id = 'load-scenario-btn'
-        this.buttonEl.textContent = 'Load Scenario'
-        this.buttonEl.addEventListener('click', this.handleLoadScenario.bind(this))
-
-        // Create styles
-        const style = document.createElement('style')
-        style.textContent = `
-            .test-scenarios-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                margin: 10px 0;
-                gap: 10px;
-            }
-            
-            select {
-                padding: 8px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-                background-color: white;
-                font-family: inherit;
-                font-size: 14px;
-            }
-            
-            button {
-                padding: 8px 12px;
-                background-color: var(--button-background, #BE9B7B);
-                color: var(--button-text, #2A2723);
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                transition: background-color 0.2s;
-            }
-            
-            button:hover {
-                background-color: var(--button-hover, #D4AF91);
-            }
-        `
-
-        // Add elements to container
-        container.appendChild(this.selectEl)
-        container.appendChild(this.buttonEl)
-
-        // Add container and style to shadow DOM
-        this.shadowRoot!.appendChild(style)
-        this.shadowRoot!.appendChild(container)
-    }
+        button:hover {
+            background-color: var(--button-hover, #d4af91);
+        }
+    `
 
     // Set the game state instance to interact with
     setGameState(gameState: any): void {
@@ -92,7 +50,9 @@ export class TestModeUI extends HTMLElement {
     private handleLoadScenario(): void {
         if (!this.gameState) return
 
-        const selectedScenario = this.selectEl.value
+        const selectEl = this.shadowRoot?.querySelector('#test-scenario-select') as HTMLSelectElement
+        const selectedScenario = selectEl.value
+
         if (selectedScenario) {
             this.gameState.newGame(selectedScenario)
         }
@@ -102,5 +62,19 @@ export class TestModeUI extends HTMLElement {
     static isTestModeEnabled(): boolean {
         const urlParams = new URLSearchParams(window.location.search)
         return urlParams.has('testmode')
+    }
+
+    render() {
+        return html`
+            <div class="test-scenarios-container">
+                <select id="test-scenario-select">
+                    <option value="">Select a test scenario</option>
+                    ${Object.entries(scenarios).map(
+                        ([id, scenario]) => html`<option value="${id}">${scenario.name}</option>`,
+                    )}
+                </select>
+                <button id="load-scenario-btn" @click=${this.handleLoadScenario}>Load Scenario</button>
+            </div>
+        `
     }
 }

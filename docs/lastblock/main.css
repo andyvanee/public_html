@@ -1,13 +1,13 @@
 :root {
     /* Base color palette */
-    --color-dark-brown: #2A2723;
-    --color-darker-brown: #1E1C19;
-    --color-medium-brown: #53493F; 
-    --color-light-brown: #BE9B7B;
-    --color-tan: #D4AF91;
-    --color-teal: #3D8C9E;
-    --color-dark-teal: #2D7A8E;
-    
+    --color-dark-brown: #2a2723;
+    --color-darker-brown: #1e1c19;
+    --color-medium-brown: #53493f;
+    --color-light-brown: #be9b7b;
+    --color-tan: #d4af91;
+    --color-teal: #3d8c9e;
+    --color-dark-teal: #2d7a8e;
+
     /* Functional colors */
     --background-color: var(--color-darker-brown);
     --container-background: var(--color-dark-brown);
@@ -20,13 +20,13 @@
     --button-background: var(--color-light-brown);
     --button-text: var(--color-dark-brown);
     --button-hover: var(--color-tan);
-    
+
     /* Font family */
     --font-family: 'Source Sans 3', sans-serif;
     --font-weight-regular: 400;
     --font-weight-bold: 700;
     --font-weight-black: 900;
-    
+
     /* Mobile wrapper sizes */
     --mobile-wrapper-width: 414px;
     --mobile-wrapper-height: 736px;
@@ -72,7 +72,7 @@ body {
         background-color: #111111;
         align-items: center;
     }
-    
+
     .mobile-wrapper {
         width: var(--mobile-wrapper-width);
         height: var(--mobile-wrapper-height);
@@ -81,7 +81,7 @@ body {
         box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
         position: relative;
     }
-    
+
     .container {
         max-height: 100%;
         overflow-y: auto;
@@ -141,7 +141,9 @@ main {
     aspect-ratio: 4 / 5.5; /* Adjusted aspect ratio for the taller canvas */
 }
 
-#main-canvas, #toast-canvas, #overlay-canvas {
+#main-canvas,
+#toast-canvas,
+#overlay-canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -189,35 +191,35 @@ footer {
 
 /* Test scenarios UI */
 .test-scenarios-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 10px 0;
-  gap: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+    gap: 10px;
 }
 
 .test-scenarios-container select {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: white;
-  font-family: inherit;
-  font-size: 14px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-family: inherit;
+    font-size: 14px;
 }
 
 #load-scenario-btn {
-  padding: 8px 12px;
-  background-color: var(--button-background);
-  color: var(--button-text);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
+    padding: 8px 12px;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
 }
 
 #load-scenario-btn:hover {
-  background-color: var(--button-hover);
+    background-color: var(--button-hover);
 }
 
 .controls {
@@ -228,7 +230,7 @@ footer {
     .game-area {
         width: 100%;
     }
-    
+
     .container {
         padding: 10px;
     }

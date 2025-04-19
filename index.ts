@@ -3,8 +3,19 @@ import { $ } from 'bun'
 
 $.cwd(import.meta.dirname)
 
-await $`bun run aura/index.ts`
-await $`bun run lastblock/index.ts`
+// List of projects to build and watch
+const projects = ['lastblock', 'aura']
+
+// Initial builds
+console.log('Running initial builds...')
+for (const project of projects) {
+    console.log(`Building ${project}...`)
+    try {
+        await $`cd ${project} && make`
+    } catch (error) {
+        console.error(`Error in ${project} build: ${error}`)
+    }
+}
 
 const port = parseInt(process.env.PORT || '3000')
 
@@ -27,36 +38,29 @@ const server = Bun.serve({
     },
 })
 
-watch('./lastblock', { recursive: true }, async (event, filename) => {
-    if (!filename) return
+// Get file extensions to watch
+const watchExtensions = ['.ts', '.js', '.html', '.css', '.json', '.svg']
 
-    if (!(filename.endsWith('.ts') || filename.endsWith('.css') || filename.endsWith('.html'))) {
-        return
-    }
+// Set up watchers for all projects
+for (const project of projects) {
+    watch(`./${project}`, { recursive: true }, async (event, filename) => {
+        if (!filename) return
 
-    console.log(`File changed: ${filename}`)
+        // Check if the file matches any of the watch extensions
+        if (!watchExtensions.some((ext) => filename.endsWith(ext))) {
+            return
+        }
 
-    try {
-        await $`bun run lastblock/index.ts`
-    } catch (error) {
-        console.error(`Error in lastblock build: ${error}`)
-    }
-})
+        console.log(`File changed in ${project}: ${filename}`)
 
-watch('./aura', { recursive: true }, async (event, filename) => {
-    if (!filename) return
+        try {
+            await $`cd ${project} && make`
+        } catch (error) {
+            console.error(`Error in ${project} build: ${error}`)
+        }
+    })
 
-    if (!(filename.endsWith('.ts') || filename.endsWith('.css') || filename.endsWith('.html'))) {
-        return
-    }
-
-    console.log(`File changed: ${filename}`)
-
-    try {
-        await $`bun run aura/index.ts`
-    } catch (error) {
-        console.error(`Error in aura build: ${error}`)
-    }
-})
+    console.log(`Watching ${project} for changes...`)
+}
 
 console.log(`Server running at http://localhost:${server.port}`)

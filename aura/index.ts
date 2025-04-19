@@ -1,49 +1,141 @@
 import { $ } from 'bun'
+import fs from 'fs/promises'
+import path from 'path'
+import { existsSync } from 'fs'
 
 process.chdir(import.meta.dirname)
 
-const target = '../docs/aura'
-const sources = ['index.html', 'favicon.svg', 'main.css', 'manifest.json', 'service-worker.js']
-const assets = ['assets/aura-cover.jpeg']
-const icons = [
-    'icons/aura-icon.svg',
-    'icons/icon-72x72.png',
-    'icons/icon-96x96.png',
-    'icons/icon-128x128.png',
-    'icons/icon-144x144.png',
-    'icons/icon-152x152.png',
-    'icons/icon-192x192.png',
-    'icons/icon-384x384.png',
-    'icons/icon-512x512.png'
-]
+const OUTPUT_DIR = '../docs/aura'
+const BUILD_VERSION = Date.now().toString()
 
-// Copy main source files
-for (const source of sources) {
-    await $`cp ${source} ${target}/${source}`
+// Ensure output directory exists
+async function ensureDir(dirPath: string) {
+    if (!existsSync(dirPath)) {
+        await fs.mkdir(dirPath, { recursive: true })
+    }
 }
 
-// Ensure assets directory exists and copy assets
-await $`mkdir -p ${target}/assets`
-for (const asset of assets) {
-    await $`cp ${asset} ${target}/${asset}`
+async function generateIcons() {
+    console.log('Generating icons...')
+    await $`bun run ./icons/generate-icons.ts`
 }
 
-// Ensure icons directory exists and copy icons
-await $`mkdir -p ${target}/icons`
-for (const icon of icons) {
-    await $`cp ${icon} ${target}/${icon}`
+async function copyStatic(files: string[]) {
+    console.log('Copying static files...')
+    await ensureDir(OUTPUT_DIR)
+    await ensureDir(path.join(OUTPUT_DIR, 'icons'))
+
+    // Copy specified static files
+    for (const file of files) {
+        await fs.copyFile(file, path.join(OUTPUT_DIR, path.basename(file)))
+    }
+
+    // Copy icon files
+    const iconFiles = await fs.readdir('./icons')
+    for (const file of iconFiles.filter((f) => f.endsWith('.png') || f.endsWith('.svg'))) {
+        await fs.copyFile(path.join('./icons', file), path.join(OUTPUT_DIR, 'icons', file))
+    }
 }
 
-const build = await Bun.build({
-    entrypoints: ['entrypoint.ts'],
-    minify: true,
-})
+async function copyAssets() {
+    console.log('Copying assets...')
+    await ensureDir(path.join(OUTPUT_DIR, 'assets'))
 
-const entrypoint = build.outputs.at(0)
+    // Copy all files from assets directory
+    const assetFiles = await fs.readdir('./assets')
+    for (const file of assetFiles) {
+        await fs.copyFile(path.join('./assets', file), path.join(OUTPUT_DIR, 'assets', file))
+    }
+}
 
-if (!(build.success && entrypoint)) {
-    console.error(build.logs)
+async function copyHtml(files: string[]) {
+    console.log('Processing HTML with cache busting...')
+    await ensureDir(OUTPUT_DIR)
+
+    for (const file of files) {
+        let content = await fs.readFile(file, 'utf8')
+
+        // Add cache busting parameters
+        content = content
+            .replace(/main\.css(\?v=[0-9]*){0,1}/g, `main.css?v=${BUILD_VERSION}`)
+            .replace(/entrypoint\.js(\?v=[0-9]*){0,1}/g, `entrypoint.js?v=${BUILD_VERSION}`)
+            .replace(/service-worker\.js(\?v=[0-9]*){0,1}/g, `service-worker.js?v=${BUILD_VERSION}`)
+            .replace(/manifest\.json(\?v=[0-9]*){0,1}/g, `manifest.json?v=${BUILD_VERSION}`)
+
+        await fs.writeFile(path.join(OUTPUT_DIR, path.basename(file)), content)
+    }
+
+    // Process service worker with cache version
+    if (existsSync('./service-worker.js')) {
+        let swContent = await fs.readFile('./service-worker.js', 'utf8')
+        swContent = swContent.replace(/const CACHE_NAME = .*/g, `const CACHE_NAME = "aura-cache-v${BUILD_VERSION}";`)
+        await fs.writeFile(path.join(OUTPUT_DIR, 'service-worker.js'), swContent)
+    }
+}
+
+async function bundleJs(files: string[]) {
+    console.log('Bundling JavaScript...')
+    await ensureDir(OUTPUT_DIR)
+
+    for (const file of files) {
+        await $`bun build ${file} --outdir ${OUTPUT_DIR} --minify`
+    }
+}
+
+async function clean() {
+    console.log('Cleaning output directory...')
+    if (existsSync(OUTPUT_DIR)) {
+        await fs.rm(OUTPUT_DIR, { recursive: true })
+    }
+}
+
+async function runAll() {
+    await clean()
+    await generateIcons()
+    await copyStatic(['favicon.svg', 'main.css', 'manifest.json', 'service-worker.js'])
+    await copyAssets()
+    await copyHtml(['index.html'])
+    await bundleJs(['entrypoint.ts'])
+}
+
+// Parse command line arguments
+const args = process.argv.slice(2)
+const command = args[0]
+const commandArgs = args.slice(1)
+
+// Execute the specified command
+try {
+    switch (command) {
+        case 'icons':
+            await generateIcons()
+            break
+        case 'copy-static':
+            await copyStatic(
+                commandArgs.length > 0
+                    ? commandArgs
+                    : ['favicon.svg', 'main.css', 'manifest.json', 'service-worker.js'],
+            )
+            break
+        case 'copy-assets':
+            await copyAssets()
+            break
+        case 'copy-html':
+            await copyHtml(commandArgs.length > 0 ? commandArgs : ['index.html'])
+            break
+        case 'bundle-js':
+            await bundleJs(commandArgs.length > 0 ? commandArgs : ['entrypoint.ts'])
+            break
+        case 'clean':
+            await clean()
+            break
+        default:
+            // Run all build steps if no specific command is provided
+            await runAll()
+            break
+    }
+
+    console.log('Build task completed successfully')
+} catch (e) {
+    console.error('Build failed:', e)
     process.exit(1)
 }
-
-await Bun.write(`${target}/entrypoint.js`, entrypoint)

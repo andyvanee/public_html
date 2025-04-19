@@ -21,5 +21,9 @@
         "trailingComma": "all",
         "tabWidth": 4,
         "printWidth": 120
+    },
+    "dependencies": {
+        "lit": "^3.3.0",
+        "prettier": "^3.5.3"
     }
 }
