@@ -13,7 +13,7 @@ import './InfoScreen'
  */
 @customElement('game-shell')
 export class Shell extends LitElement {
-    @state() private game: GameState = new GameState()
+    @state() private game: GameState | null = null
     @state() private toast: Toast | null = null
     @state() private isTestModeEnabled = TestModeUI.isTestModeEnabled()
 
@@ -79,6 +79,7 @@ export class Shell extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback()
+        console.log('connectedCallback')
         // We'll initialize the game in firstUpdated
     }
 
@@ -86,15 +87,26 @@ export class Shell extends LitElement {
         // Initialize Toast component
         this.toast = new Toast(this.toastCanvas)
 
-        // Initialize game
+        // Initialize game with canvas references
+        this.game = new GameState(this.mainCanvas, this.overlayCanvas)
         this.game.initialize()
+
+        // Initialize test mode UI if enabled
+        if (this.isTestModeEnabled) {
+            const testModeUI = this.shadowRoot?.querySelector('test-mode-ui') as TestModeUI
+            if (testModeUI && this.game) {
+                testModeUI.setGameState(this.game)
+            }
+        }
 
         // Dispatch an initial score update event
         updateScoreDisplay(0)
     }
 
     private handleNewGame(): void {
-        this.game.newGame()
+        if (this.game) {
+            this.game.newGame()
+        }
     }
 
     private renderTestModeUI(): TemplateResult {
@@ -102,7 +114,7 @@ export class Shell extends LitElement {
             return html``
         }
 
-        return html` <test-mode-ui .gameState=${this.game}> </test-mode-ui> `
+        return html` <test-mode-ui> </test-mode-ui> `
     }
 
     render() {

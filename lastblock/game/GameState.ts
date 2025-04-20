@@ -37,10 +37,10 @@ export class GameState {
     private challengeModeInterval: number = 10 // Trigger challenge mode every 10 moves
     private challengeBonusPoints: number = 300 // Bonus points for completing a challenge
 
-    constructor() {
-        // Get canvas references
-        this.mainCanvas = document.getElementById('main-canvas') as HTMLCanvasElement
-        this.overlayCanvas = document.getElementById('overlay-canvas') as HTMLCanvasElement
+    constructor(mainCanvas: HTMLCanvasElement, overlayCanvas: HTMLCanvasElement) {
+        // Use passed canvas references instead of finding them with document.getElementById
+        this.mainCanvas = mainCanvas
+        this.overlayCanvas = overlayCanvas
 
         this.mainCtx = this.mainCanvas.getContext('2d') as CanvasRenderingContext2D
         this.overlayCtx = this.overlayCanvas.getContext('2d') as CanvasRenderingContext2D

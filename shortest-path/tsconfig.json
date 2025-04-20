@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "declaration": false,
+        "declarationMap": false,
+        "sourceMap": true,
+        "outDir": "../docs/shortest-path",
+        "rootDir": ".",
+        "strict": true,
+        "experimentalDecorators": true,
+        "useDefineForClassFields": false,
+        "moduleResolution": "bundler",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["./**/*.ts"],
+    "exclude": ["node_modules", "**/node_modules"]
+}

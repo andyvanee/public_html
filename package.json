@@ -11,9 +11,21 @@
         "typescript": "^5"
     },
     "scripts": {
-        "build": "bun build --outdir=dist --minify --target=browser --no-sourcemap",
-        "start": "bun run build && bun serve dist/index.js",
-        "generate-icons": "bun run ./aura/icons/generate-icons.ts"
+        "build": "bun run index.ts build",
+        "serve": "bun run index.ts serve",
+        "watch": "bun run index.ts watch",
+        "lint": "bun run index.ts lint",
+        "dev": "bun run index.ts serve",
+        "clean": "rm -rf docs/*",
+        "build:lastblock": "cd lastblock && bun run index.ts",
+        "build:aura": "cd aura && bun run index.ts",
+        "build:shortest-path": "cd shortest-path && bun run index.ts",
+        "lint:lastblock": "cd lastblock && bun x tsc --noEmit",
+        "lint:aura": "cd aura && bun x tsc --noEmit",
+        "lint:shortest-path": "cd shortest-path && bun x tsc --noEmit",
+        "generate-icons:lastblock": "bun run ./lastblock/icons/generate-icons.ts",
+        "generate-icons:aura": "bun run ./aura/icons/generate-icons.ts",
+        "generate-icons:shortest-path": "bun run ./shortest-path/icons/generate-icons.ts"
     },
     "prettier": {
         "singleQuote": true,
