@@ -5,20 +5,16 @@ import { Block } from '../components/Block'
  * Updates the score display in the UI using custom events
  */
 export function updateScoreDisplay(score: number): void {
-    // Dispatch a custom event with the score
+    // Dispatch a custom event with the score that will work through shadow DOM
     document.dispatchEvent(
         new CustomEvent('score-updated', {
             detail: { score },
             bubbles: true,
-            composed: true,
+            composed: true, // This is crucial for crossing Shadow DOM boundaries
         }),
     )
 
-    // For backwards compatibility, still update any elements with ID 'score'
-    const scoreElement = document.getElementById('score')
-    if (scoreElement) {
-        scoreElement.textContent = score.toString()
-    }
+    // Removed outdated document.getElementById approach that won't work with Shadow DOM
 }
 
 /**

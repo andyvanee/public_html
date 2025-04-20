@@ -67,8 +67,8 @@ export class GameHeader extends LitElement {
 
     constructor() {
         super()
-        // Listen for score update events
-        this.addEventListener('score-updated', this.handleScoreUpdate as EventListener)
+        // Listen for score update events (now on document as they cross Shadow DOM)
+        document.addEventListener('score-updated', this.handleScoreUpdate.bind(this) as EventListener)
     }
 
     connectedCallback(): void {
@@ -79,6 +79,8 @@ export class GameHeader extends LitElement {
 
     disconnectedCallback(): void {
         super.disconnectedCallback()
+        // Clean up the event listener when component is removed
+        document.removeEventListener('score-updated', this.handleScoreUpdate.bind(this) as EventListener)
     }
 
     private handleMenuClick(): void {

@@ -1,6 +1,6 @@
 // Service Worker for LastBlock PWA
 
-const CACHE_NAME = "lastblock-cache-v1745111560592";
+const CACHE_NAME = "lastblock-cache-v1745112816466";
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
