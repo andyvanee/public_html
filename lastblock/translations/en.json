@@ -1,0 +1,12 @@
+{
+    "challenge": {
+        "activated": "Use all pieces!",
+        "completed": "+{bonusPoints} bonus points!"
+    },
+    "multiplier": {
+        "message": "{multiplier}x MULTIPLIER!"
+    },
+    "highScore": {
+        "newHighScore": "New High Score: {score}!"
+    }
+}

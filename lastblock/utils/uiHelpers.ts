@@ -29,27 +29,33 @@ export function renderAvailablePieces(ctx: CanvasRenderingContext2D, pieces: Blo
 }
 
 /**
- * Renders the game over screen on the main canvas
+ * Render the game over screen
  */
 export function renderGameOver(ctx: CanvasRenderingContext2D, score: number): void {
-    const canvas = ctx.canvas
-    const width = canvas.width
-    const gridHeight = config.gridSize * config.cellSize
+    const canvasWidth = ctx.canvas.width
+    const canvasHeight = ctx.canvas.height
 
-    // Create semi-transparent overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(0, 0, width, gridHeight + config.pieceAreaHeight)
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-    // Draw game over text
-    ctx.font = '36px Arial'
-    ctx.fillStyle = 'white'
+    // Draw the dark overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+
+    // Set up the text style
+    ctx.font = 'bold 40px Arial'
+    ctx.fillStyle = '#FFFFFF'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('Game Over!', width / 2, gridHeight / 3)
 
-    // Draw score
-    ctx.font = '28px Arial'
-    ctx.fillText(`Final Score: ${score}`, width / 2, gridHeight / 2)
+    // Draw the main game over text
+    ctx.fillText('GAME OVER', canvasWidth / 2, canvasHeight / 3)
+
+    // Draw the score
+    ctx.font = '30px Arial'
+    ctx.fillText(`Score: ${score}`, canvasWidth / 2, canvasHeight / 2)
+
+    // Note: High score message is now shown as a toast notification instead
 }
 
 /**

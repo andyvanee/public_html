@@ -2,6 +2,7 @@ import { config } from '../config/gameConfig'
 import { Block } from './Block'
 import { Board } from '../models/Board'
 import { updateScoreDisplay } from '../utils/uiHelpers'
+import { t } from '../translations/translate'
 
 // Grid class to represent the game grid
 export class Grid {
@@ -303,12 +304,12 @@ export class Grid {
 
     // Show a visual notification of the multi-line bonus
     private showMultiLineBonus(linesCleared: number): void {
-        // Use the Toast component to show the multiplier message
-        const message = `${linesCleared}x MULTIPLIER!`
+        // Use the Status component to show the multiplier message with translations
+        const message = t('multiplier.message', { multiplier: linesCleared })
 
-        // Dispatch a toast event
+        // Dispatch a status event
         document.dispatchEvent(
-            new CustomEvent('game-toast', {
+            new CustomEvent('game-status', {
                 detail: {
                     message,
                     type: 'bonus',

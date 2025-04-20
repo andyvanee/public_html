@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
+import './Status' // Import the Status component
 
 @customElement('game-header')
 export class GameHeader extends LitElement {
@@ -16,21 +17,15 @@ export class GameHeader extends LitElement {
             width: 100%;
         }
 
-        h1 {
-            color: var(--text-color, #d4af91);
-            margin: 0;
-            font-size: 18px;
-            font-weight: 400;
-            font-family: var(--font-family);
-        }
-
         .score-container {
-            font-size: 18px;
+            font-size: 16px; /* Updated to 16px to match status messages */
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 900;
             color: var(--text-color, #d4af91);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-weight: 400;
+            padding: 0 15px;
         }
 
         .menu-button-container {
@@ -48,7 +43,7 @@ export class GameHeader extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 5px;
+            padding: 5px 15px 5px 5px;
             transition: transform 0.2s;
         }
 
@@ -57,11 +52,15 @@ export class GameHeader extends LitElement {
         }
 
         .header-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            display: flex;
             align-items: center;
             width: 100%;
             padding: 0.5rem 0;
+        }
+
+        .score-value {
+            color: #ffd700; /* Gold color for score */
+            margin-left: 5px;
         }
     `
 
@@ -106,8 +105,8 @@ export class GameHeader extends LitElement {
     render() {
         return html`
             <div class="header-content">
-                <h1>Lastblock</h1>
-                <div class="score-container">Score: <span id="score">${this.score}</span></div>
+                <game-status></game-status>
+                <div class="score-container">Score: <span id="score" class="score-value">${this.score}</span></div>
                 <div class="menu-button-container">
                     <button class="menu-button" @click=${this.handleMenuClick} aria-label="Open Information">
                         &#9776;

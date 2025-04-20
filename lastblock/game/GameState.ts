@@ -2,6 +2,10 @@ import { config } from '../config/gameConfig'
 import { Block } from '../components/Block'
 import { Grid } from '../components/Grid'
 import { Board } from '../models/Board'
+import { Game } from '../models/Game'
+import { StatCategory } from '../models/Stats'
+import { Status } from '../components/Status'
+import { t } from '../translations/translate'
 import {
     renderAvailablePieces,
     renderGameOver,
@@ -12,7 +16,6 @@ import {
 import { scenarios } from './scenarios'
 
 export class GameState {
-    score: number = 0
     isDragging: boolean = false
     activePiece: Block | null = null
     dragStartX: number = 0
@@ -31,11 +34,8 @@ export class GameState {
     overlayCtx: CanvasRenderingContext2D
     private cursorOffset: number = 40 // Reduced from 50px to 40px for better placement
 
-    // Challenge mode properties
-    private moveCount: number = 0
-    private isChallengeMode: boolean = false
-    private challengeModeInterval: number = 10 // Trigger challenge mode every 10 moves
-    private challengeBonusPoints: number = 300 // Bonus points for completing a challenge
+    // Game model to hold score and challenge mode properties
+    game: Game
 
     constructor(mainCanvas: HTMLCanvasElement, overlayCanvas: HTMLCanvasElement) {
         // Use passed canvas references instead of finding them with document.getElementById
@@ -45,6 +45,9 @@ export class GameState {
         this.mainCtx = this.mainCanvas.getContext('2d') as CanvasRenderingContext2D
         this.overlayCtx = this.overlayCanvas.getContext('2d') as CanvasRenderingContext2D
 
+        // Initialize game model
+        this.game = new Game()
+
         // Set canvas dimensions
         const totalHeight = config.gridSize * config.cellSize + config.pieceAreaHeight
         this.mainCanvas.width = config.gridSize * config.cellSize
@@ -53,7 +56,7 @@ export class GameState {
         this.overlayCanvas.height = totalHeight
 
         // Initialize grid
-        this.grid = new Grid(this.mainCanvas, this.score)
+        this.grid = new Grid(this.mainCanvas, this.game.score)
 
         // Setup event listeners
         this.setupEventListeners()
@@ -228,22 +231,22 @@ export class GameState {
             // Mark the piece as no longer available
             this.activePiece.isAvailable = false
 
-            // Update the score reference
-            this.score = this.grid.score
+            // Update the score in the game model and database
+            this.game.updateScore(this.grid.score)
 
             // Update the score display in the UI
-            updateScoreDisplay(this.score)
+            updateScoreDisplay(this.game.score)
 
             // Increment the move counter
-            this.moveCount++
+            this.game.incrementMoveCount()
 
             // Check if we should enter challenge mode
-            if (!this.isChallengeMode && this.moveCount % this.challengeModeInterval === 0) {
+            if (this.game.shouldActivateChallengeMode()) {
                 this.activateChallengeMode()
             }
 
             // If in challenge mode, check if all pieces have been used
-            if (this.isChallengeMode) {
+            if (this.game.isChallengeMode) {
                 this.checkChallengeCompletion()
             } else {
                 // Only generate new pieces in regular mode
@@ -299,14 +302,23 @@ export class GameState {
         if (!possibleMoves) {
             // Set game over state
             this.isGameOver = true
-            this.finalScore = this.score
+            this.finalScore = this.game.score
 
-            // Render game over screen
-            renderGameOver(this.mainCtx, this.finalScore)
+            // Record game stats and check for high score
+            this.game.handleGameOver().then((isNewHighScore) => {
+                // Render game over screen without high score message
+                renderGameOver(this.mainCtx, this.finalScore)
 
-            // Render play again button on overlay
-            this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
-            renderPlayAgainButton(this.overlayCtx, false)
+                // Render play again button on overlay
+                this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
+                renderPlayAgainButton(this.overlayCtx, false)
+
+                // If it's a new high score, show it as a toast instead of on canvas
+                if (isNewHighScore) {
+                    // Show high score toast with special styling
+                    Status.showMessage(t('highScore.newHighScore', { score: this.finalScore }), 'challenge')
+                }
+            })
 
             // Remove any ongoing animations
             if (this.animationFrameId !== null) {
@@ -326,7 +338,7 @@ export class GameState {
 
         // Reset the board first
         this.grid.clearGrid()
-        this.score = 0
+        this.game.score = 0
 
         const scenario = scenarios[scenarioId]
 
@@ -364,20 +376,20 @@ export class GameState {
         renderAvailablePieces(this.overlayCtx, this.availablePieces)
 
         // Update score display
-        updateScoreDisplay(this.score)
+        updateScoreDisplay(this.game.score)
     }
 
-    // Extend newGame to accept an optional scenario ID
-    newGame(scenarioId?: string): void {
-        // Reset game state
-        this.score = 0
+    // Extend newGame to accept an optional scenario ID and properly reset stats
+    async newGame(scenarioId?: string): Promise<void> {
+        // Reset game state including stats
+        await this.game.initGame()
         this.isGameOver = false
 
         // Update UI
-        updateScoreDisplay(this.score)
+        updateScoreDisplay(this.game.score)
 
         // Create new grid
-        this.grid = new Grid(this.mainCanvas, this.score)
+        this.grid = new Grid(this.mainCanvas, this.game.score)
 
         // Clear available pieces
         this.availablePieces = []
@@ -419,7 +431,7 @@ export class GameState {
 
     // Event handler methods
     private onScoreUpdateRequest(): void {
-        updateScoreDisplay(this.score)
+        updateScoreDisplay(this.game.score)
     }
 
     private onCanvasMouseMove(e: MouseEvent): void {
@@ -640,7 +652,7 @@ export class GameState {
      * Activates the challenge mode, displaying a gold outline around the grid
      */
     private activateChallengeMode(): void {
-        this.isChallengeMode = true
+        this.game.isChallengeMode = true
 
         // Set the grid to challenge mode so it can display the gold outline
         this.grid.setChallengeMode(true)
@@ -648,7 +660,8 @@ export class GameState {
         // Re-render the grid with the challenge outline
         this.grid.render()
 
-        // Note: Toast notification removed as requested
+        // Show a toast message
+        Status.showMessage(t('challenge.activated'), 'challenge')
     }
 
     /**
@@ -656,14 +669,14 @@ export class GameState {
      */
     private completeChallengeMode(): void {
         // Add bonus points
-        this.score += this.challengeBonusPoints
-        updateScoreDisplay(this.score)
+        this.game.addChallengeBonus()
+        updateScoreDisplay(this.game.score)
 
         // Update grid score to keep it in sync
-        this.grid.score = this.score
+        this.grid.score = this.game.score
 
         // Exit challenge mode
-        this.isChallengeMode = false
+        this.game.isChallengeMode = false
         this.grid.setChallengeMode(false)
 
         // Generate new pieces
@@ -674,7 +687,8 @@ export class GameState {
         this.overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height)
         renderAvailablePieces(this.overlayCtx, this.availablePieces)
 
-        // Note: Toast notification removed as requested
+        // Show success toast
+        Status.showMessage(t('challenge.completed', { bonusPoints: this.game.challengeBonusPoints }), 'bonus')
     }
 
     /**

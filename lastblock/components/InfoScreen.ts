@@ -125,6 +125,24 @@ export class InfoScreen extends LitElement {
         .setting-option label {
             cursor: pointer;
         }
+
+        .game-button {
+            background-color: var(--button-background, #be9b7b);
+            color: var(--button-text, #2a2723);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .game-button:hover {
+            background-color: var(--button-hover, #d4af91);
+        }
     `
 
     constructor() {
@@ -167,6 +185,18 @@ export class InfoScreen extends LitElement {
         `
     }
 
+    private handleNewGame(): void {
+        // Dispatch a custom event that the Shell component will listen for
+        const event = new CustomEvent('new-game-requested', {
+            bubbles: true,
+            composed: true, // Allows the event to cross shadow DOM boundaries
+        })
+        this.dispatchEvent(event)
+
+        // Close the info screen after starting new game
+        this.hide()
+    }
+
     render() {
         return html`
             <div class="info-container ${this.isVisible ? 'visible' : ''}">
@@ -194,6 +224,11 @@ export class InfoScreen extends LitElement {
                 </div>
 
                 <div class="tab-content ${this.activeTab === 1 ? 'active' : ''}">
+                    <div class="setting-group">
+                        <h3>Game</h3>
+                        <button class="game-button" @click=${this.handleNewGame}>New Game</button>
+                    </div>
+
                     <div class="setting-group">
                         <h3>Theme</h3>
                         ${this.renderSettingOption('theme', 'default', 'Default', true)}
