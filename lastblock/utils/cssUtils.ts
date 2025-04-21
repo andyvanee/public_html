@@ -7,6 +7,12 @@ export type Color = string
 // Cache for storing CSS variable values to avoid repeated getComputedStyle calls
 const colorCache: Map<string, string> = new Map()
 
+// Initialize event listener for theme changes
+document.addEventListener('theme-change', () => {
+    // Clear cache when theme is about to change
+    colorCache.clear()
+})
+
 export const css = {
     /**
      * Get a CSS variable value from the :root element
@@ -17,23 +23,18 @@ export const css = {
         // Ensure the name has leading --
         const varName = name.startsWith('--') ? name : `--${name}`
 
-        // Check if the value exists in cache first
+        // Check if the value is in the cache
         if (colorCache.has(varName)) {
             return colorCache.get(varName) as Color
         }
 
-        // If not in cache, get from computed style
+        // Get the value from CSS
         const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
 
-        if (!value) {
-            console.warn(`CSS variable ${varName} not found or empty`)
-            return '#000000' // Default to black if not found
-        }
-
-        // Store in cache for future use
+        // Cache the value for future use
         colorCache.set(varName, value)
 
-        return value as Color
+        return value
     },
 
     /**
@@ -41,20 +42,20 @@ export const css = {
      * @param name - The CSS variable name (with or without leading --)
      * @param value - The value to set
      */
-    set: (name: string, value: Color): void => {
+    set: (name: string, value: string): void => {
+        // Ensure the name has leading --
         const varName = name.startsWith('--') ? name : `--${name}`
 
-        // Only update if the value has changed
-        const currentValue = colorCache.get(varName)
-        if (currentValue !== value) {
-            document.documentElement.style.setProperty(varName, value)
-            // Update cache
-            colorCache.set(varName, value)
-        }
+        // Set the CSS variable on :root
+        document.documentElement.style.setProperty(varName, value)
+
+        // Update the cache with the new value
+        colorCache.set(varName, value)
     },
 
     /**
-     * Clear the color cache to force fresh reads from computed style
+     * Clear the CSS variable cache
+     * This should be called whenever theme changes are made
      */
     clearCache: (): void => {
         colorCache.clear()
@@ -138,3 +139,15 @@ export const css = {
         return brightness > 125
     },
 }
+
+document.addEventListener('theme-changed', (event) => {
+    const detail = (event as CustomEvent).detail
+    css.clearCache()
+
+    document.dispatchEvent(
+        new CustomEvent('on-theme-change', {
+            bubbles: true,
+            composed: true,
+        }),
+    )
+})

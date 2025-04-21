@@ -3,6 +3,10 @@ import { Block } from './Block'
 import { Board } from '../models/Board'
 import { updateScoreDisplay } from '../utils/uiHelpers'
 import { t } from '../translations/translate'
+import { ShapeKind } from '../models/ShapeKind'
+
+// Initialize the ShapeKinds
+ShapeKind.initialize()
 
 // Grid class to represent the game grid
 export class Grid {
@@ -22,7 +26,15 @@ export class Grid {
         // Initialize board
         this.board = new Board()
 
+        this.addEventListeners()
+
         this.render()
+    }
+
+    addEventListeners(): void {
+        document.addEventListener('on-theme-change', (event) => {
+            this.render()
+        })
     }
 
     // Method to set Challenge mode on/off
@@ -60,41 +72,10 @@ export class Grid {
         // Draw filled cells
         for (let y = 0; y < config.gridSize; y++) {
             for (let x = 0; x < config.gridSize; x++) {
-                const color = this.board.cells[y][x]
-                if (color) {
-                    ctx.fillStyle = color
-                    ctx.strokeStyle = '#3F3A33' // Slightly darker than the block for outline
-                    ctx.lineWidth = 2
-
-                    // Draw block with slight 3D effect (like in the concept art)
-                    const blockX = x * cellSize
-                    const blockY = y * cellSize
-
-                    // Draw main block face
-                    ctx.fillRect(blockX, blockY, cellSize, cellSize)
-
-                    // Draw top highlight
-                    ctx.fillStyle = this.lightenColor(color, 15)
-                    ctx.beginPath()
-                    ctx.moveTo(blockX, blockY)
-                    ctx.lineTo(blockX + cellSize, blockY)
-                    ctx.lineTo(blockX + cellSize - 4, blockY + 4)
-                    ctx.lineTo(blockX + 4, blockY + 4)
-                    ctx.closePath()
-                    ctx.fill()
-
-                    // Draw right shadow
-                    ctx.fillStyle = this.darkenColor(color, 15)
-                    ctx.beginPath()
-                    ctx.moveTo(blockX + cellSize, blockY)
-                    ctx.lineTo(blockX + cellSize, blockY + cellSize)
-                    ctx.lineTo(blockX + cellSize - 4, blockY + cellSize - 4)
-                    ctx.lineTo(blockX + cellSize - 4, blockY + 4)
-                    ctx.closePath()
-                    ctx.fill()
-
-                    // Draw block outline
-                    ctx.strokeRect(blockX, blockY, cellSize, cellSize)
+                const shapeKind = this.board.cells[y][x]
+                if (shapeKind) {
+                    // Draw block with 3D effect and pattern
+                    this.drawBlockWithPattern(x, y, shapeKind)
                 }
             }
         }
@@ -122,50 +103,66 @@ export class Grid {
         ctx.moveTo(0, gridHeight)
         ctx.lineTo(this.canvas.width, gridHeight)
         ctx.stroke()
-
-        // Draw "Available Pieces" text with background to ensure visibility
-        const textY = gridHeight + 20
-        const text = 'Available Pieces'
-        ctx.font = '16px Arial'
-        ctx.textAlign = 'center'
-
-        // Draw text background/shadow for better visibility
-        ctx.fillStyle = 'rgba(30, 28, 25, 0.7)' // Semi-transparent background
-        const textWidth = ctx.measureText(text).width + 10
-        const textHeight = 20
-        ctx.fillRect(this.canvas.width / 2 - textWidth / 2, textY - textHeight + 4, textWidth, textHeight)
-
-        // Draw the text
-        ctx.fillStyle = config.textColor
-        ctx.fillText(text, this.canvas.width / 2, textY)
     }
 
-    // Helper method to lighten a color
-    lightenColor(color: string, percent: number): string {
-        const hex = color.replace('#', '')
-        const r = parseInt(hex.substr(0, 2), 16)
-        const g = parseInt(hex.substr(2, 2), 16)
-        const b = parseInt(hex.substr(4, 2), 16)
+    // Method to draw a block with pattern using ShapeKind
+    drawBlockWithPattern(x: number, y: number, shapeKind: ShapeKind): void {
+        const ctx = this.ctx
+        const cellSize = config.cellSize
+        const blockX = x * cellSize
+        const blockY = y * cellSize
 
-        const lightenR = Math.min(Math.floor(r * (1 + percent / 100)), 255)
-        const lightenG = Math.min(Math.floor(g * (1 + percent / 100)), 255)
-        const lightenB = Math.min(Math.floor(b * (1 + percent / 100)), 255)
+        // Main block face
+        ctx.fillStyle = shapeKind.color
+        ctx.fillRect(blockX, blockY, cellSize, cellSize)
 
-        return `rgb(${lightenR}, ${lightenG}, ${lightenB})`
-    }
+        // Draw top highlight (bevel effect)
+        ctx.fillStyle = shapeKind.lightenColor(shapeKind.color, 15)
+        ctx.beginPath()
+        ctx.moveTo(blockX, blockY)
+        ctx.lineTo(blockX + cellSize, blockY)
+        ctx.lineTo(blockX + cellSize - 4, blockY + 4)
+        ctx.lineTo(blockX + 4, blockY + 4)
+        ctx.closePath()
+        ctx.fill()
 
-    // Helper method to darken a color
-    darkenColor(color: string, percent: number): string {
-        const hex = color.replace('#', '')
-        const r = parseInt(hex.substr(0, 2), 16)
-        const g = parseInt(hex.substr(2, 2), 16)
-        const b = parseInt(hex.substr(4, 2), 16)
+        // Draw right shadow
+        ctx.fillStyle = shapeKind.darkenColor(shapeKind.color, 15)
+        ctx.beginPath()
+        ctx.moveTo(blockX + cellSize, blockY)
+        ctx.lineTo(blockX + cellSize, blockY + cellSize)
+        ctx.lineTo(blockX + cellSize - 4, blockY + cellSize - 4)
+        ctx.lineTo(blockX + cellSize - 4, blockY + 4)
+        ctx.closePath()
+        ctx.fill()
 
-        const darkenR = Math.max(Math.floor(r * (1 - percent / 100)), 0)
-        const darkenG = Math.max(Math.floor(g * (1 - percent / 100)), 0)
-        const darkenB = Math.max(Math.floor(b * (1 - percent / 100)), 0)
+        // Draw bottom shadow
+        ctx.fillStyle = shapeKind.darkenColor(shapeKind.color, 25)
+        ctx.beginPath()
+        ctx.moveTo(blockX, blockY + cellSize)
+        ctx.lineTo(blockX + cellSize, blockY + cellSize)
+        ctx.lineTo(blockX + cellSize - 4, blockY + cellSize - 4)
+        ctx.lineTo(blockX + 4, blockY + cellSize - 4)
+        ctx.closePath()
+        ctx.fill()
 
-        return `rgb(${darkenR}, ${darkenG}, ${darkenB})`
+        // Draw left highlight
+        ctx.fillStyle = shapeKind.lightenColor(shapeKind.color, 5)
+        ctx.beginPath()
+        ctx.moveTo(blockX, blockY)
+        ctx.lineTo(blockX, blockY + cellSize)
+        ctx.lineTo(blockX + 4, blockY + cellSize - 4)
+        ctx.lineTo(blockX + 4, blockY + 4)
+        ctx.closePath()
+        ctx.fill()
+
+        // Draw block outline
+        ctx.strokeStyle = '#3F3A33' // Slightly darker than the block for outline
+        ctx.lineWidth = 2
+        ctx.strokeRect(blockX, blockY, cellSize, cellSize)
+
+        // Draw pattern on the block using the ShapeKind
+        shapeKind.drawSymbolOnBlock(ctx, blockX, blockY, cellSize)
     }
 
     canPlacePiece(piece: Block, gridX: number, gridY: number): boolean {
@@ -203,7 +200,7 @@ export class Grid {
         for (let y = 0; y < piece.shape.length; y++) {
             for (let x = 0; x < piece.shape[y].length; x++) {
                 if (piece.shape[y][x]) {
-                    this.board.cells[gridY + y][gridX + x] = piece.color
+                    this.board.cells[gridY + y][gridX + x] = piece.shapeKind
                     squaresPlaced++
                 }
             }
@@ -213,11 +210,12 @@ export class Grid {
         this.score += squaresPlaced * 15
         updateScoreDisplay(this.score)
 
-        // Update the display
-        this.render()
-
-        // Check for filled rows/columns and update score
+        // Check for filled rows/columns and update score before rendering
+        // This ensures the lines are cleared visually before the next piece is placed
         this.checkForCompleteLines()
+
+        // Update the display - already called in checkForCompleteLines if lines were cleared
+        this.render()
 
         return true
     }

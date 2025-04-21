@@ -1,10 +1,11 @@
 import { config } from '../config/gameConfig'
 import { Shape } from '../models/Shape'
+import { ShapeKind } from '../models/ShapeKind'
 
 // Block class to represent tetromino pieces
 export class Block {
     shape: boolean[][]
-    color: string
+    shapeKind: ShapeKind
     x: number
     y: number
     isAvailable: boolean
@@ -21,14 +22,21 @@ export class Block {
             this.shape = shape
             this.shapeName = 'custom'
             // Use provided color or default to a random color
-            this.color = color || config.colors[Math.floor(Math.random() * config.colors.length)]
+            if (color) {
+                // Try to find a ShapeKind with this color or create a generic one
+                this.shapeKind = ShapeKind.getByColor(color) || new ShapeKind('custom', color)
+            } else {
+                // Pick a random color from config
+                const randomColor = config.colors[Math.floor(Math.random() * config.colors.length)]
+                this.shapeKind = new ShapeKind('custom', randomColor)
+            }
         } else {
             // Get a random shape from the Shape class
             const randomShape = Shape.random()
             this.shape = randomShape.pattern
             this.shapeName = randomShape.name
-            // Use the color defined in the Shape class
-            this.color = randomShape.color
+            // Use the ShapeKind from the Shape class
+            this.shapeKind = randomShape.kind
         }
 
         if (position !== undefined) {
@@ -62,6 +70,13 @@ export class Block {
             // Store the scale factor as a property so render() can use it
             this.scaleFactor = scaleFactor
         }
+    }
+
+    /**
+     * Get the color of this block
+     */
+    get color(): string {
+        return this.shapeKind.color
     }
 
     generateRandomShape(): boolean[][] {
@@ -110,7 +125,7 @@ export class Block {
         }
     }
 
-    // New method to draw a block with 3D effect and symbol
+    // Method to draw a block with 3D effect
     drawBlockWithEffect(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
         // Main block face
         ctx.fillStyle = this.color
@@ -161,178 +176,8 @@ export class Block {
         ctx.lineWidth = 1
         ctx.strokeRect(x, y, size, size)
 
-        // Draw a symbol on the block based on the shape type (similar to concept art)
-        this.drawSymbolOnBlock(ctx, x, y, size)
-    }
-
-    // Method to draw a symbol on the block
-    drawSymbolOnBlock(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-        const padding = size * 0.2
-        const symbolSize = size - padding * 2
-
-        // Draw in a contrasting color
-        const isLightColor = this.isLightColor(this.color)
-        ctx.fillStyle = isLightColor ? this.darkenColor(this.color, 30) : this.lightenColor(this.color, 30)
-        ctx.strokeStyle = isLightColor ? this.darkenColor(this.color, 30) : this.lightenColor(this.color, 30)
-        ctx.lineWidth = 2
-
-        // Draw different symbols based on shape name
-        switch (this.shapeName) {
-            case 'Line':
-                // Draw a horizontal line symbol
-                ctx.beginPath()
-                ctx.moveTo(x + padding, y + size / 2)
-                ctx.lineTo(x + size - padding, y + size / 2)
-                ctx.stroke()
-                break
-
-            case 'Line3':
-                // Draw a horizontal line symbol (medium length)
-                ctx.beginPath()
-                ctx.moveTo(x + padding * 1.2, y + size / 2)
-                ctx.lineTo(x + size - padding * 1.2, y + size / 2)
-                ctx.stroke()
-                // Add dots to indicate 3 units
-                ctx.beginPath()
-                ctx.arc(x + size * 0.25, y + size / 2, size * 0.06, 0, Math.PI * 2)
-                ctx.arc(x + size * 0.5, y + size / 2, size * 0.06, 0, Math.PI * 2)
-                ctx.arc(x + size * 0.75, y + size / 2, size * 0.06, 0, Math.PI * 2)
-                ctx.fill()
-                break
-
-            case 'Line5':
-                // Draw a horizontal line symbol with pattern indicating 5 units
-                ctx.beginPath()
-                ctx.moveTo(x + padding * 0.8, y + size / 2)
-                ctx.lineTo(x + size - padding * 0.8, y + size / 2)
-                ctx.stroke()
-                // Add dots to indicate 5 units
-                ctx.beginPath()
-                for (let i = 1; i <= 5; i++) {
-                    ctx.arc(x + (size * i) / 6, y + size / 2, size * 0.05, 0, Math.PI * 2)
-                }
-                ctx.fill()
-                break
-
-            case 'Line2':
-                // Draw a shorter horizontal line symbol
-                ctx.beginPath()
-                ctx.moveTo(x + padding * 1.5, y + size / 2)
-                ctx.lineTo(x + size - padding * 1.5, y + size / 2)
-                ctx.stroke()
-                break
-
-            case 'LineVertical':
-                // Draw a vertical line symbol
-                ctx.beginPath()
-                ctx.moveTo(x + size / 2, y + padding)
-                ctx.lineTo(x + size / 2, y + size - padding)
-                ctx.stroke()
-                break
-
-            case 'LineVertical3':
-                // Draw a vertical line symbol (medium length)
-                ctx.beginPath()
-                ctx.moveTo(x + size / 2, y + padding * 1.2)
-                ctx.lineTo(x + size / 2, y + size - padding * 1.2)
-                ctx.stroke()
-                // Add dots to indicate 3 units
-                ctx.beginPath()
-                ctx.arc(x + size / 2, y + size * 0.25, size * 0.06, 0, Math.PI * 2)
-                ctx.arc(x + size / 2, y + size * 0.5, size * 0.06, 0, Math.PI * 2)
-                ctx.arc(x + size / 2, y + size * 0.75, size * 0.06, 0, Math.PI * 2)
-                ctx.fill()
-                break
-
-            case 'LineVertical5':
-                // Draw a vertical line symbol with pattern indicating 5 units
-                ctx.beginPath()
-                ctx.moveTo(x + size / 2, y + padding * 0.8)
-                ctx.lineTo(x + size / 2, y + size - padding * 0.8)
-                ctx.stroke()
-                // Add dots to indicate 5 units
-                ctx.beginPath()
-                for (let i = 1; i <= 5; i++) {
-                    ctx.arc(x + size / 2, y + (size * i) / 6, size * 0.05, 0, Math.PI * 2)
-                }
-                ctx.fill()
-                break
-
-            case 'LineVertical2':
-                // Draw a shorter vertical line symbol
-                ctx.beginPath()
-                ctx.moveTo(x + size / 2, y + padding * 1.5)
-                ctx.lineTo(x + size / 2, y + size - padding * 1.5)
-                ctx.stroke()
-                break
-
-            case 'Square2x2':
-                // Draw a square symbol
-                ctx.strokeRect(x + padding, y + padding, symbolSize, symbolSize)
-                break
-
-            case 'TShape':
-                // Draw a T symbol
-                ctx.beginPath()
-                ctx.moveTo(x + size / 2, y + padding)
-                ctx.lineTo(x + size / 2, y + size - padding)
-                ctx.moveTo(x + padding, y + padding)
-                ctx.lineTo(x + size - padding, y + padding)
-                ctx.stroke()
-                break
-
-            case 'LShape':
-                // Draw an L symbol
-                ctx.beginPath()
-                ctx.moveTo(x + padding + symbolSize / 3, y + padding)
-                ctx.lineTo(x + padding + symbolSize / 3, y + size - padding)
-                ctx.lineTo(x + size - padding, y + size - padding)
-                ctx.stroke()
-                break
-
-            case 'ZShape':
-                // Draw a Z symbol
-                ctx.beginPath()
-                ctx.moveTo(x + padding, y + padding)
-                ctx.lineTo(x + size - padding, y + padding)
-                ctx.lineTo(x + padding, y + size - padding)
-                ctx.lineTo(x + size - padding, y + size - padding)
-                ctx.stroke()
-                break
-
-            case 'Single':
-                // Draw a dot symbol
-                ctx.beginPath()
-                ctx.arc(x + size / 2, y + size / 2, symbolSize / 5, 0, Math.PI * 2)
-                ctx.fill()
-                break
-
-            case 'SmallL':
-                // Draw a small L symbol
-                ctx.beginPath()
-                ctx.moveTo(x + padding + symbolSize / 3, y + padding)
-                ctx.lineTo(x + padding + symbolSize / 3, y + size - padding)
-                ctx.lineTo(x + size - padding, y + size - padding)
-                ctx.stroke()
-                break
-
-            case 'Square3x3':
-                // Draw concentric squares
-                ctx.strokeRect(x + padding, y + padding, symbolSize, symbolSize)
-                ctx.strokeRect(
-                    x + padding + symbolSize / 4,
-                    y + padding + symbolSize / 4,
-                    symbolSize / 2,
-                    symbolSize / 2,
-                )
-                break
-
-            default:
-                // Draw a circle for any other shapes
-                ctx.beginPath()
-                ctx.arc(x + size / 2, y + size / 2, symbolSize / 3, 0, Math.PI * 2)
-                ctx.stroke()
-        }
+        // Draw a symbol on the block using the ShapeKind
+        this.shapeKind.drawSymbolOnBlock(ctx, x, y, size)
     }
 
     // Helper method to lighten a color

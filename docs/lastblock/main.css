@@ -1,5 +1,5 @@
 :root {
-    /* Base color palette */
+    /* Base color palette - Dark Theme */
     --color-dark-brown: #2a2723;
     --color-darker-brown: #1e1c19;
     --color-medium-brown: #53493f;
@@ -8,7 +8,14 @@
     --color-teal: #3d8c9e;
     --color-dark-teal: #2d7a8e;
 
-    /* Functional colors */
+    /* Light Theme Colors */
+    --color-light-background: #f0f0e6;
+    --color-light-container: #ffffff;
+    --color-light-medium: #d0d0c6;
+    --color-light-border: #c0c0b6;
+    --color-light-text: #363630;
+    
+    /* Color Scheme Properties - Set different values in theme classes */
     --background-color: var(--color-darker-brown);
     --container-background: var(--color-dark-brown);
     --grid-background: var(--color-dark-brown);
@@ -30,6 +37,61 @@
     /* Mobile wrapper sizes */
     --mobile-wrapper-width: 414px;
     --mobile-wrapper-height: 736px;
+}
+
+/* Dark Theme (explicit) */
+.theme-dark {
+    --background-color: var(--color-darker-brown);
+    --container-background: var(--color-dark-brown);
+    --grid-background: var(--color-dark-brown);
+    --grid-line-color: var(--color-medium-brown);
+    --border-color: var(--color-medium-brown);
+    --text-color: var(--color-tan);
+    --button-background: var(--color-light-brown);
+    --button-text: var(--color-dark-brown);
+    --button-hover: var(--color-tan);
+}
+
+/* Light Theme */
+.theme-light {
+    --background-color: var(--color-light-background);
+    --container-background: var(--color-light-container);
+    --grid-background: var(--color-light-container);
+    --grid-line-color: var(--color-light-border);
+    --border-color: var(--color-light-medium);
+    --text-color: var(--color-light-text);
+    --button-background: var(--color-teal);
+    --button-text: white;
+    --button-hover: var(--color-dark-teal);
+}
+
+/* System Theme - Uses prefers-color-scheme media query */
+@media (prefers-color-scheme: dark) {
+    .theme-system {
+        --background-color: var(--color-darker-brown);
+        --container-background: var(--color-dark-brown);
+        --grid-background: var(--color-dark-brown);
+        --grid-line-color: var(--color-medium-brown);
+        --border-color: var(--color-medium-brown);
+        --text-color: var(--color-tan);
+        --button-background: var(--color-light-brown);
+        --button-text: var(--color-dark-brown);
+        --button-hover: var(--color-tan);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    .theme-system {
+        --background-color: var(--color-light-background);
+        --container-background: var(--color-light-container);
+        --grid-background: var(--color-light-container);
+        --grid-line-color: var(--color-light-border);
+        --border-color: var(--color-light-medium);
+        --text-color: var(--color-light-text);
+        --button-background: var(--color-teal);
+        --button-text: white;
+        --button-hover: var(--color-dark-teal);
+    }
 }
 
 * {

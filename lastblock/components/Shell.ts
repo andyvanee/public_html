@@ -55,16 +55,11 @@ export class Shell extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback()
-        console.log('connectedCallback')
-        // We'll initialize the game in firstUpdated
-
-        // Listen for new game event from InfoScreen
         this.addEventListener('new-game-requested', this.handleNewGame.bind(this))
     }
 
     disconnectedCallback(): void {
         super.disconnectedCallback()
-        // Clean up event listener
         this.removeEventListener('new-game-requested', this.handleNewGame.bind(this))
     }
 

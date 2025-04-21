@@ -16,14 +16,24 @@ async function ensureDir(dirPath: string) {
 }
 
 async function generateIcons() {
-    console.log('Generating icons...')
     await $`bun run ./icons/generate-icons.ts`
+}
+
+async function generateSprites() {
+    console.log('Generating and compiling sprites...')
+    // First generate a test spritesheet if one doesn't exist
+    if (!existsSync('./assets/sprites/spritesheet.png')) {
+        await $`bun run ./assets/sprites/generate-test-spritesheet.ts`
+    }
+    // Then compile the spritesheet to JSON
+    await $`bun run ./assets/sprites/compile-spritesheet.ts`
 }
 
 async function copyStatic(files: string[]) {
     console.log('Copying static files...')
     await ensureDir(OUTPUT_DIR)
     await ensureDir(path.join(OUTPUT_DIR, 'icons'))
+    await ensureDir(path.join(OUTPUT_DIR, 'assets/sprites'))
 
     // Copy specified static files
     for (const file of files) {
@@ -35,6 +45,10 @@ async function copyStatic(files: string[]) {
     for (const file of iconFiles.filter((f) => f.endsWith('.png') || f.endsWith('.svg'))) {
         await fs.copyFile(path.join('./icons', file), path.join(OUTPUT_DIR, 'icons', file))
     }
+
+    // Copy sprite files
+    await fs.copyFile('./assets/sprites/sprites.json', path.join(OUTPUT_DIR, 'assets/sprites', 'sprites.json'))
+    await fs.copyFile('./assets/sprites/spritesheet.png', path.join(OUTPUT_DIR, 'assets/sprites', 'spritesheet.png'))
 }
 
 async function copyHtml(files: string[]) {
@@ -84,6 +98,7 @@ async function clean() {
 async function runAll() {
     await clean()
     await generateIcons()
+    await generateSprites()
     await copyStatic(['favicon.svg', 'main.css', 'manifest.json', 'service-worker.js'])
     await copyHtml(['index.html'])
     await bundleJs(['entrypoint.ts'])
@@ -99,6 +114,9 @@ try {
     switch (command) {
         case 'icons':
             await generateIcons()
+            break
+        case 'sprites':
+            await generateSprites()
             break
         case 'copy-static':
             await copyStatic(

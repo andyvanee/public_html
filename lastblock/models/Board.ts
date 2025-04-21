@@ -1,65 +1,75 @@
 import { config } from '../config/gameConfig'
+import { ShapeKind } from './ShapeKind'
 
-// Board class represents the state of the game grid
+// Board class to represent the game board state
 export class Board {
-    cells: (string | null)[][] = []
+    cells: (ShapeKind | null)[][]
 
     constructor() {
-        // Initialize empty grid
-        this.reset()
-    }
-
-    // Reset the board to empty state
-    reset(): void {
+        // Initialize the board with empty cells
         this.cells = Array(config.gridSize)
             .fill(null)
             .map(() => Array(config.gridSize).fill(null))
     }
 
-    // Set the state of a specific cell
-    setCellState(x: number, y: number, color: string | null): void {
-        if (x >= 0 && x < config.gridSize && y >= 0 && y < config.gridSize) {
-            this.cells[y][x] = color
-        }
-    }
-
-    // Serialize the board to a string representation
-    serialize(): string[][] {
-        return this.cells.map((row) => row.map((cell) => cell || ''))
-    }
-
-    // Create a board from a serialized representation
-    static deserialize(serialized: string[][]): Board {
-        const board = new Board()
-
-        // Ensure proper dimensions
-        const height = Math.min(serialized.length, config.gridSize)
-
-        for (let y = 0; y < height; y++) {
-            const row = serialized[y]
-            const width = Math.min(row.length, config.gridSize)
-
-            for (let x = 0; x < width; x++) {
-                // Empty string represents null (empty cell)
-                board.cells[y][x] = row[x] || null
+    // Reset the board to an empty state
+    reset(): void {
+        for (let y = 0; y < config.gridSize; y++) {
+            for (let x = 0; x < config.gridSize; x++) {
+                this.cells[y][x] = null
             }
         }
-
-        return board
     }
 
-    // Check if the cell at (x, y) is occupied
-    isCellOccupied(x: number, y: number): boolean {
-        if (x < 0 || y < 0 || x >= config.gridSize || y >= config.gridSize) {
-            return true // Out of bounds cells are considered occupied
+    // Set a specific cell's state
+    setCellState(x: number, y: number, color: string | null): void {
+        if (x < 0 || x >= config.gridSize || y < 0 || y >= config.gridSize) {
+            console.error('Invalid cell coordinates:', x, y)
+            return
         }
-        return this.cells[y][x] !== null
+
+        if (color === null) {
+            this.cells[y][x] = null
+        } else {
+            // Try to find a ShapeKind with this color or create a generic one
+            const shapeKind = ShapeKind.getByColor(color) || new ShapeKind('custom', color)
+            this.cells[y][x] = shapeKind
+        }
     }
 
-    // Clone the current board
+    // Get the color of a specific cell
+    getCellColor(x: number, y: number): string | null {
+        if (x < 0 || x >= config.gridSize || y < 0 || y >= config.gridSize) {
+            return null
+        }
+        return this.cells[y][x]?.color || null
+    }
+
+    // Count filled cells on the board
+    countFilledCells(): number {
+        let count = 0
+        for (let y = 0; y < config.gridSize; y++) {
+            for (let x = 0; x < config.gridSize; x++) {
+                if (this.cells[y][x] !== null) {
+                    count++
+                }
+            }
+        }
+        return count
+    }
+
+    // Clone the board
     clone(): Board {
         const newBoard = new Board()
-        newBoard.cells = this.cells.map((row) => [...row])
+        for (let y = 0; y < config.gridSize; y++) {
+            for (let x = 0; x < config.gridSize; x++) {
+                const shapeKind = this.cells[y][x]
+                if (shapeKind) {
+                    const color = shapeKind.color
+                    newBoard.setCellState(x, y, color)
+                }
+            }
+        }
         return newBoard
     }
 }

@@ -1,5 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import './InfoScreen/Instructions'
+import './InfoScreen/Settings'
 
 @customElement('info-screen')
 export class InfoScreen extends LitElement {
@@ -72,19 +74,6 @@ export class InfoScreen extends LitElement {
             display: block;
         }
 
-        h2 {
-            color: var(--text-color, #d4af91);
-            margin-top: 0;
-            margin-bottom: 12px;
-            border-bottom: 1px solid var(--border-color, #53493f);
-            padding-bottom: 8px;
-        }
-
-        p {
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
         .close-button {
             background-color: var(--button-background, #be9b7b);
             color: var(--button-text, #2a2723);
@@ -93,54 +82,12 @@ export class InfoScreen extends LitElement {
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            margin-top: 10px;
+            margin: 0 20px 20px;
             transition: background-color 0.2s;
             font-weight: bold;
         }
 
         .close-button:hover {
-            background-color: var(--button-hover, #d4af91);
-        }
-
-        .setting-group {
-            margin-bottom: 20px;
-        }
-
-        .setting-group h3 {
-            margin-bottom: 8px;
-            font-size: 18px;
-            font-weight: normal;
-        }
-
-        .setting-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .setting-option input {
-            margin-right: 8px;
-        }
-
-        .setting-option label {
-            cursor: pointer;
-        }
-
-        .game-button {
-            background-color: var(--button-background, #be9b7b);
-            color: var(--button-text, #2a2723);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-            transition: background-color 0.2s;
-            font-weight: bold;
-            width: 100%;
-        }
-
-        .game-button:hover {
             background-color: var(--button-hover, #d4af91);
         }
     `
@@ -176,27 +123,6 @@ export class InfoScreen extends LitElement {
         this.isVisible = false
     }
 
-    private renderSettingOption(name: string, value: string, label: string, checked: boolean = false) {
-        return html`
-            <div class="setting-option">
-                <input type="radio" id="${name}-${value}" name="${name}" value="${value}" ?checked=${checked} />
-                <label for="${name}-${value}">${label}</label>
-            </div>
-        `
-    }
-
-    private handleNewGame(): void {
-        // Dispatch a custom event that the Shell component will listen for
-        const event = new CustomEvent('new-game-requested', {
-            bubbles: true,
-            composed: true, // Allows the event to cross shadow DOM boundaries
-        })
-        this.dispatchEvent(event)
-
-        // Close the info screen after starting new game
-        this.hide()
-    }
-
     render() {
         return html`
             <div class="info-container ${this.isVisible ? 'visible' : ''}">
@@ -205,41 +131,22 @@ export class InfoScreen extends LitElement {
                         class="tab-button ${this.activeTab === 0 ? 'active' : ''}"
                         @click=${() => this.switchTab(0)}
                     >
-                        How to Play
+                        Settings
                     </button>
                     <button
                         class="tab-button ${this.activeTab === 1 ? 'active' : ''}"
                         @click=${() => this.switchTab(1)}
                     >
-                        Settings
+                        How to Play
                     </button>
                 </div>
 
                 <div class="tab-content ${this.activeTab === 0 ? 'active' : ''}">
-                    <p>
-                        Drag and drop blocks onto the grid. Complete rows or columns to clear them and score points.
-                        Game over when no more pieces can be placed.
-                    </p>
-                    <p>Clear multiple lines at once for a bigger bonus!</p>
+                    <info-settings></info-settings>
                 </div>
 
                 <div class="tab-content ${this.activeTab === 1 ? 'active' : ''}">
-                    <div class="setting-group">
-                        <h3>Game</h3>
-                        <button class="game-button" @click=${this.handleNewGame}>New Game</button>
-                    </div>
-
-                    <div class="setting-group">
-                        <h3>Theme</h3>
-                        ${this.renderSettingOption('theme', 'default', 'Default', true)}
-                        ${this.renderSettingOption('theme', 'dark', 'Dark')}
-                    </div>
-
-                    <div class="setting-group">
-                        <h3>Sound</h3>
-                        ${this.renderSettingOption('sound', 'on', 'On', true)}
-                        ${this.renderSettingOption('sound', 'off', 'Off')}
-                    </div>
+                    <info-instructions></info-instructions>
                 </div>
 
                 <button class="close-button" @click=${this.toggle}>Close</button>

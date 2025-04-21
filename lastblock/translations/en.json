@@ -4,7 +4,7 @@
         "completed": "+{bonusPoints} bonus points!"
     },
     "multiplier": {
-        "message": "{multiplier}x MULTIPLIER!"
+        "message": "{multiplier}x multiplier!"
     },
     "highScore": {
         "newHighScore": "New High Score: {score}!"

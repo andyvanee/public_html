@@ -29,7 +29,6 @@ export function initTranslations(language: string = 'en'): void {
         }
 
         currentLanguage = language
-        console.log(`Initialized translations for ${language}`)
     } catch (error) {
         console.error('Error initializing translations:', error)
         // Ensure we always have a valid language set
