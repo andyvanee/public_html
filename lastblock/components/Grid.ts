@@ -4,6 +4,7 @@ import { Board } from '../models/Board'
 import { updateScoreDisplay } from '../utils/uiHelpers'
 import { t } from '../translations/translate'
 import { ShapeKind } from '../models/ShapeKind'
+import { css } from '../utils/cssUtils'
 
 // Initialize the ShapeKinds
 ShapeKind.initialize()
@@ -15,7 +16,7 @@ export class Grid {
     board: Board
     score: number
     private isChallengeMode: boolean = false
-    private challengeOutlineColor: string = '#FFD700' // Gold color
+    private challengeOutlineColor: string = css.get('color-gold')
     private challengeOutlineWidth: number = 4
 
     constructor(canvas: HTMLCanvasElement, initialScore: number = 0) {

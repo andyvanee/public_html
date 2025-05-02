@@ -71,7 +71,7 @@ export class Status extends LitElement {
         }
 
         .message.type-challenge {
-            color: #ffd700; /* Gold color for challenges */
+            color: var(--color-gold, #c6aa11);
         }
 
         .message.type-bonus {

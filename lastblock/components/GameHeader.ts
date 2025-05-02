@@ -59,7 +59,7 @@ export class GameHeader extends LitElement {
         }
 
         .score-value {
-            color: #ffd700; /* Gold color for score */
+            color: var(--color-gold, #c6aa11);
             margin-left: 5px;
         }
     `

@@ -1,6 +1,20 @@
 # Lastblock Changelog
 
-## Lastblock v0.0.5
+## v0.0.6
+
+### Features
+
+- Updated Sprites and minor theme tweaks
+
+## v0.0.5
+
+### Features
+
+- Sprite based block rendering based on ShapeKind
+- Dark / Light mode setting actually works
+- InfoScreen extracted to subcomponents for future development
+
+## Lastblock v0.0.4
 
 ### Features
 
@@ -22,11 +36,3 @@
 - **Code Organization**:
     - Improved separation of concerns between UI and game logic
     - Added type safety for message handling
-
-## v0.0.5
-
-### Features
-
-- Sprite based block rendering based on ShapeKind
-- Dark / Light mode setting actually works
-- InfoScreen extracted to subcomponents for future development

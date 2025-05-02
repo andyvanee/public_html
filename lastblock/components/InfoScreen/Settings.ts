@@ -166,7 +166,6 @@ export class Settings extends LitElement {
         return html`
             <div class="settings-content">
                 <div class="setting-group">
-                    <h3>Game</h3>
                     <button class="game-button" @click=${this.handleNewGame}>New Game</button>
 
                     <div class="high-score">
@@ -180,12 +179,6 @@ export class Settings extends LitElement {
                     ${this.renderSettingOption('theme', 'system', 'System Default', this.activeTheme === 'system')}
                     ${this.renderSettingOption('theme', 'light', 'Light', this.activeTheme === 'light')}
                     ${this.renderSettingOption('theme', 'dark', 'Dark', this.activeTheme === 'dark')}
-                </div>
-
-                <div class="setting-group">
-                    <h3>Sound</h3>
-                    ${this.renderSettingOption('sound', 'on', 'On', true)}
-                    ${this.renderSettingOption('sound', 'off', 'Off')}
                 </div>
             </div>
         `
