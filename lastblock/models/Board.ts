@@ -72,4 +72,36 @@ export class Board {
         }
         return newBoard
     }
+
+    // Serialize the board state to JSON for localStorage
+    serialize(): string {
+        // Create a 2D array of colors (or null for empty cells)
+        const serializedBoard = this.cells.map((row) => row.map((cell) => (cell ? cell.color : null)))
+        return JSON.stringify(serializedBoard)
+    }
+
+    // Deserialize the board state from localStorage
+    static deserialize(serializedData: string): Board {
+        try {
+            const boardData = JSON.parse(serializedData) as (string | null)[][]
+            const board = new Board()
+
+            if (Array.isArray(boardData) && boardData.length === config.gridSize) {
+                boardData.forEach((row, y) => {
+                    if (Array.isArray(row) && row.length === config.gridSize) {
+                        row.forEach((color, x) => {
+                            if (color !== null) {
+                                board.setCellState(x, y, color)
+                            }
+                        })
+                    }
+                })
+            }
+
+            return board
+        } catch (error) {
+            console.error('Failed to deserialize board data:', error)
+            return new Board() // Return a fresh board if deserialization fails
+        }
+    }
 }

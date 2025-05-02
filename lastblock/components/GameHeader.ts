@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
-import './Status' // Import the Status component
+import './Status'
 
 @customElement('game-header')
 export class GameHeader extends LitElement {
@@ -18,7 +18,7 @@ export class GameHeader extends LitElement {
         }
 
         .score-container {
-            font-size: 16px; /* Updated to 16px to match status messages */
+            font-size: 16px;
             font-family: 'Source Sans 3', sans-serif;
             font-weight: 900;
             color: var(--text-color, #d4af91);
@@ -66,29 +66,30 @@ export class GameHeader extends LitElement {
 
     constructor() {
         super()
-        // Listen for score update events (now on document as they cross Shadow DOM)
         document.addEventListener('score-updated', this.handleScoreUpdate.bind(this) as EventListener)
+
+        setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('request-score-update'))
+        }, 0)
     }
 
     connectedCallback(): void {
         super.connectedCallback()
-        // Request current score when connected to DOM
         document.dispatchEvent(new CustomEvent('request-score-update'))
     }
 
     disconnectedCallback(): void {
         super.disconnectedCallback()
-        // Clean up the event listener when component is removed
         document.removeEventListener('score-updated', this.handleScoreUpdate.bind(this) as EventListener)
     }
 
     private handleMenuClick(): void {
-        // Dispatch a custom event that will be handled to show the info screen
-        const event = new CustomEvent('toggle-info-screen', {
-            bubbles: true,
-            composed: true,
-        })
-        this.dispatchEvent(event)
+        this.dispatchEvent(
+            new CustomEvent('toggle-info-screen', {
+                bubbles: true,
+                composed: true,
+            }),
+        )
     }
 
     private handleScoreUpdate(event: CustomEvent): void {
@@ -97,7 +98,6 @@ export class GameHeader extends LitElement {
         }
     }
 
-    // For backwards compatibility
     getScoreElement(): HTMLElement {
         return this.renderRoot.querySelector('#score') as HTMLElement
     }

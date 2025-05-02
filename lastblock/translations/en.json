@@ -8,5 +8,8 @@
     },
     "highScore": {
         "newHighScore": "New High Score: {score}!"
+    },
+    "game": {
+        "newGameStarted": "New game started!"
     }
 }

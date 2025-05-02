@@ -108,10 +108,21 @@ export class InfoScreen extends LitElement {
 
     toggle(): void {
         this.isVisible = !this.isVisible
+        this.tabActivatedEvent()
     }
 
     switchTab(index: number): void {
         this.activeTab = index
+        this.tabActivatedEvent()
+    }
+
+    tabActivatedEvent() {
+        this.dispatchEvent(
+            new CustomEvent('tab-activated', {
+                bubbles: true,
+                composed: true,
+            }),
+        )
     }
 
     // For manually triggering visibility

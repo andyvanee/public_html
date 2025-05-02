@@ -82,6 +82,19 @@ export class Settings extends LitElement {
         super.connectedCallback()
         this.loadHighScore()
         this.loadThemePreference()
+
+        document.addEventListener('tab-activated', this.handleTabActivation.bind(this))
+
+        // Add listener for high score updates
+        document.addEventListener('high-score-updated', this.handleHighScoreUpdate.bind(this))
+    }
+
+    disconnectedCallback(): void {
+        super.disconnectedCallback()
+        document.removeEventListener('tab-activated', this.handleTabActivation.bind(this))
+
+        // Remove high score update listener
+        document.removeEventListener('high-score-updated', this.handleHighScoreUpdate.bind(this))
     }
 
     async loadHighScore(): Promise<void> {
@@ -94,15 +107,12 @@ export class Settings extends LitElement {
     }
 
     loadThemePreference(): void {
-        // Check if theme preference exists in localStorage
         const storedTheme = localStorage.getItem('theme-preference')
         if (storedTheme) {
             this.activeTheme = storedTheme
         } else {
-            // Default to system if no preference is stored
             this.activeTheme = 'system'
         }
-        // Make sure the document has the proper theme class
         this.applyTheme(this.activeTheme)
     }
 
@@ -116,13 +126,9 @@ export class Settings extends LitElement {
             }),
         )
 
-        // Remove all theme classes
         document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-system')
-        // Add the selected theme class
         document.documentElement.classList.add(`theme-${theme}`)
-        // Save preference
         localStorage.setItem('theme-preference', theme)
-        // Update state
         this.activeTheme = theme
         document.dispatchEvent(
             new CustomEvent('theme-changed', {
@@ -154,12 +160,34 @@ export class Settings extends LitElement {
     }
 
     private handleNewGame(): void {
-        // Dispatch a custom event that the Shell component will listen for
-        const event = new CustomEvent('new-game-requested', {
-            bubbles: true,
-            composed: true, // Allows the event to cross shadow DOM boundaries
-        })
-        this.dispatchEvent(event)
+        this.dispatchEvent(
+            new CustomEvent('new-game-requested', {
+                bubbles: true,
+                composed: true,
+            }),
+        )
+        document.dispatchEvent(
+            new CustomEvent('toggle-info-screen', {
+                bubbles: true,
+                composed: true,
+            }),
+        )
+    }
+
+    private handleTabActivation(event: Event): void {
+        const customEvent = event as CustomEvent
+        if (customEvent.detail && customEvent.detail.index === 0) {
+            this.loadHighScore()
+        }
+    }
+
+    // Handle high score update event
+    private handleHighScoreUpdate(event: Event): void {
+        const customEvent = event as CustomEvent
+        if (customEvent.detail && typeof customEvent.detail.score === 'number') {
+            this.highScore = customEvent.detail.score
+            this.requestUpdate()
+        }
     }
 
     render() {

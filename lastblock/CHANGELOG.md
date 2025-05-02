@@ -5,6 +5,10 @@
 ### Features
 
 - Updated Sprites and minor theme tweaks
+- Remove a bunch of extraneous comments
+- Store board/availablePieces/score in localStorage
+- High score now syncs realtime rather than needing a reload
+- New game button now closes menu
 
 ## v0.0.5
 
