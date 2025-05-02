@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Black CRT screen background -->
+  <rect x="10" y="10" width="80" height="70" rx="4" fill="black" />
+  
+  <!-- Green outline for the CRT screen -->
+  <rect x="10" y="10" width="80" height="70" rx="4" fill="none" stroke="#22bb22" stroke-width="3" />
+  
+</svg>

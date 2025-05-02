@@ -4,7 +4,7 @@ import { $ } from 'bun'
 $.cwd(import.meta.dirname)
 
 // List of projects to build and watch
-const projects = ['lastblock', 'aura', 'shortest-path']
+const projects = ['lastblock', 'aura', 'shortest-path', 'machine']
 
 // Function to build a single project
 async function buildProject(project: string) {

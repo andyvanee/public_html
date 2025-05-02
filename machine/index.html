@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>machine</title>
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+        <link rel="stylesheet" href="./main.css" />
+        <script type="module" src="./entrypoint.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <canvas class="screen" id="screen" width="800" height="600"></canvas>
+            <div class="controls">
+                <button id="start">Start</button>
+                <button id="stop">Stop</button>
+                <div id="status">Status: <span id="status-text">Stopped</span></div>
+                <div id="fps"><span id="fps-text">0</span>MHz</div>
+            </div>
+        </div>
+    </body>
+</html>
